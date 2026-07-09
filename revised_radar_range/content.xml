@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<content id="revised_radar_ranges" name="Revised Radar Ranges" description="spacesuits 40km -> 20km, scouts 40km -> 60km, M-ships 40km -> 50km, L-ships 40km -> 60km, XL-ships 40km -> 70km, stations 40km -> 80km" author="mitternachtssurfer" version="1.0" date="2026-07-07" save="0">
+  <text language="49" name="Ueberarbeitete Radarreichweiten" description="Raumanzuege 40km -> 20km, Spaeher 40km -> 60km, M-Schiffe 40km -> 50km, L-Schiffe 40km -> 60km, XL-Schiffe 40km -> 70km, Stationen 40km -> 80km" />
+</content>
