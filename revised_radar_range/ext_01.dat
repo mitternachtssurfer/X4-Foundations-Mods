@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//macros/macro/properties[ship[@type='scout']]">
+    <radar range="60000" />
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <replace sel="//defaults/dataset[@class='ship_xs']/properties/radar/@range">20000</replace>
+  <replace sel="//defaults/dataset[@class='ship_m']/properties/radar/@range">50000</replace>
+  <replace sel="//defaults/dataset[@class='ship_l']/properties/radar/@range">60000</replace>
+  <replace sel="//defaults/dataset[@class='ship_xl']/properties/radar/@range">70000</replace>
+  <replace sel="//defaults/dataset[@class='station']/properties/radar/@range">80000</replace>
+  <replace sel="//defaults/dataset/properties/statistics/max/radar/@range">96000.000000</replace>
+</diff>
