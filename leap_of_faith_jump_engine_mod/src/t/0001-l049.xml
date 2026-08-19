@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="49">
+  <page id="9000001" title="Glaubenssprung-Sprungantriebsmod - Eigene Texte" descr="Eigene Forschungs-, Ausrüstungsmod- und Nachrichtentexte des Mods 'Glaubenssprung-Sprungantriebsmod'" voice="no">
+    <!-- Forschung: Sprungmuster-Antriebsforschung (Freischaltung durch genuegend Sprung-Datenpunkte) -->
+    <t id="10">Anomalie-Sprungmuster-Forschung</t>
+    <t id="11">Boso Tas Analyse der gesammelten Sprungdaten von Schiffen, die die Anomalie zwischen Habgier und Glaubenssprung durchqueren, zeigt ein konsistentes Muster - genug, um eine Antriebsmodifikation zu entwickeln, die es jedem Schiff ermöglicht, dauerhaft hindurchzukommen.</t>
+    <!-- Antriebsmod (Freischaltung durch die Forschung) -->
+    <t id="12">Glaubenssprung-Sprungstabilisierer</t>
+    <t id="13">Eine Antriebsmodifikation, entwickelt aus Boso Tas Forschung zu den Anomalie-Sprungdaten. Damit ausgerüstete Schiffe können die Anomalie zwischen Habgier und Glaubenssprung dauerhaft durchqueren.</t>
+    <!-- Nachricht 1: nach Story-Abschluss + erstem Sprung Habgier -> Glaubenssprung -->
+    <t id="200">Ein aufschlussreiches Muster</t>
+    <t id="201">Die Daten beim Sprung durch die Habgier V Anomalie nach Glaubenssprung sind aufschlussreich. Ich glaube es gibt dort ein Muster. Wenn ich weitere Daten erhalten könnte, würde sich daraus sicher eine spannende Forschungsmöglichkeit ergeben.</t>
+    <!-- Nachricht 2: nach genuegend weiteren Sprüngen - Forschung wird freigeschaltet -->
+    <t id="210">Genügend Daten</t>
+    <t id="211">Ich habe jetzt genügend Sprungdaten gesammelt, um ein zuverlässiges Muster zu erkennen! Ich kann mit der eigentlichen Forschung an einer Antriebsmodifikation beginnen, die es jedem Schiff ermöglichen sollte, dauerhaft hindurchzukommen.</t>
+    <!-- Nachrichtenquelle -->
+    <t id="202">Boso Ta</t>
+  </page>
+</language>

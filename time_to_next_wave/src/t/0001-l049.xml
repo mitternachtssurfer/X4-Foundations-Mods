@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="49">
+  <page id="9000004" title="Zeit bis zur nächsten Welle - Eigene Texte" descr="Eigene Rechtsklickmenü- und Nachrichtentexte des Mods 'Time to Next Wave'" voice="no">
+    <!-- Reiner Status-Eintrag im Rechtsklickmenue der Wellenbrecher-Station - keine Funktion per Klick. $STATUS$ wird live aus id 15/16 gefuellt, sodass das Menue selbst den aktuellen Countdown zeigt; immer gefuellt (nie ein nackter, baumelnder ":" da $STATUS$ nie leer ist). -->
+    <t id="10">Nächste Flut in: $STATUS$</t>
+    <t id="11">Schätzung der Flugkontrolle von Wellenbrecher, wann die nächste Flut eintrifft.</t>
+    <!-- Live-Statuszusatz, der id 10 im Menue selbst angehaengt wird. $TIME$ ist die reine, auf Minuten gerundete Zahl (TimeToNextWave_FormatMinutes). -->
+    <t id="15">$TIME$ Minuten</t>
+    <t id="16">jetzt!</t>
+    <!-- Message title (Hinweis bei Phase 'Warning', Ansehen ab 10) -->
+    <t id="13">Flutwarnung</t>
+    <!-- Message title (Hinweis bei Beginn der Welle, Ansehen ab 20) -->
+    <t id="14">Flutalarm</t>
+    <!-- Restzeit, auf die naechste Minute gerundet - fuer den Hinweis bei Phase 'Warning' -->
+    <t id="22">Die Flut bricht in $TIME$ Minuten aus.</t>
+    <!-- Hinweis bei Beginn der Welle (Ansehen ab 20) -->
+    <t id="32">Macht euch bereit - die Flut bricht jetzt herein.</t>
+    <!-- Umschalt-Eintrag im Menue (nur ab Ansehen 10), zeigt den aktuellen Ein/Aus-Status -->
+    <t id="40">Flutwarnung: AKTIV</t>
+    <t id="41">Flutwarnung: INAKTIV</t>
+    <t id="42">Meldet euch für eine Benachrichtigung an, wenn ihr eine Flutwarnung erhalten wollt.</t>
+  </page>
+</language>

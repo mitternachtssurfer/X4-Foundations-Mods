@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="9000001" title="Leap of Faith Jump Engine Mod - Custom Texts" descr="Custom research, equipment mod and message texts added by the Leap of Faith Jump Engine Mod" voice="no">
+    <!-- Research: unlocked once enough jump data points have been collected -->
+    <t id="10">Anomaly Jump Pattern Research</t>
+    <t id="11">Boso Ta's analysis of the jump data collected from ships crossing the anomaly between Avarice and Leap of Faith reveals a consistent pattern - enough to design an engine modification that lets any ship make the crossing permanently.</t>
+    <!-- Engine mod (unlocked by the research) -->
+    <t id="12">Leap of Faith Jump Stabilizer</t>
+    <t id="13">An engine modification developed from Boso Ta's anomaly jump research. Ships fitted with it can permanently traverse the anomaly between Avarice and Leap of Faith.</t>
+    <!-- Message 1: after story completed + first jump Avarice -> Leap of Faith -->
+    <t id="200">A Revealing Pattern</t>
+    <t id="201">The data from your jump through the Avarice V anomaly to Leap of Faith is quite revealing. I believe there's a pattern here. If I could get a few more data points, I'm sure it would lead to an exciting research opportunity.</t>
+    <!-- Message 2: after enough further jumps - research gets unlocked -->
+    <t id="210">Enough Data</t>
+    <t id="211">I've gathered enough jump data now to chart a reliable pattern! I can start real research on an engine modification that should let any ship make the crossing permanently.</t>
+    <!-- Message source -->
+    <t id="202">Boso Ta</t>
+  </page>
+</language>

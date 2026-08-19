@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="9000002" title="Order Jump Anomaly - Custom Texts" descr="Custom interact menu texts added by the Order Jump Anomaly mod" voice="no">
+    <!-- Interact menu action shown when right-clicking a nav beacon placed near an anomaly -->
+    <t id="10">Jump through Anomaly</t>
+    <t id="11">Fly to the nearby anomaly and jump through it.</t>
+    <!-- Custom AI order queued after MoveToObject (aiscripts/order.jump.anomaly.xml) -->
+    <t id="20">Jump through Anomaly</t>
+    <t id="21">Fly to the nearby anomaly and jump through it.</t>
+    <t id="22">Anomaly</t>
+  </page>
+</language>

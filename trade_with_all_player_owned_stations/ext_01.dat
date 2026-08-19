@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <replace sel="//order[@id='TradeRoutine']/params/param[@name='debugchance']">
+    <param name="useallplayerstationsbuyers" type="bool" default="true" text="All player stations as buyers" comment="If enabled, station traders may sell to player-owned stations outside normal sell range.">
+      <input_param name="canplayeroverride" value="true"/>
+    </param>
+    <param name="useallplayerstationssellers" type="bool" default="true" text="All player stations as sellers" comment="If enabled, station traders may buy from player-owned stations outside normal buy range.">
+      <input_param name="canplayeroverride" value="true"/>
+    </param>
+    <param name="debugchance" type="bool" default="0" advanced="true" text="{1041, 10086}" comment="Print debug output">
+      <input_param name="truevalue" value="100"/>
+    </param>
+  </replace>
+
+  <replace sel="//run_script[@name='$findtradescript']">
+    <do_if value="$findtradescript == 'trade.find.commander'">
+      <run_script name="$findtradescript">
+        <param name="warebasket" value="$warebasket" />
+        <param name="manualwarebasket" value="$warebasket_override"/>
+        <param name="range" value="$range" />
+        <param name="sellspaces" value="$sellspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="buyspaces" value="$buyspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="tradeforbuildstorage" value="$tradeforbuildstorage"/>
+        <param name="smuggle" value="$usecover"/>
+        <param name="buyfromfactions" value="$buyfromfactions"/>
+        <param name="selltofactions" value="$selltofactions"/>
+        <param name="useallplayerstationsbuyers" value="$useallplayerstationsbuyers"/>
+        <param name="useallplayerstationssellers" value="$useallplayerstationssellers"/>
+        <param name="debugchance" value="$debugchance"/>
+        <param name="debugchance2" value="$debugchance2"/>
+        <save_retval name="selloffer" variable="$selloffer" />
+        <save_retval name="buyoffer" variable="$buyoffer" />
+        <save_retval name="failurereason" variable="$failurereason"/>
+      </run_script>
+    </do_if>
+    <do_else>
+      <run_script name="$findtradescript">
+        <param name="warebasket" value="$warebasket" />
+        <param name="manualwarebasket" value="$warebasket_override"/>
+        <param name="range" value="$range" />
+        <param name="sellspaces" value="$sellspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="buyspaces" value="$buyspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="tradeforbuildstorage" value="$tradeforbuildstorage"/>
+        <param name="smuggle" value="$usecover"/>
+        <param name="buyfromfactions" value="$buyfromfactions"/>
+        <param name="selltofactions" value="$selltofactions"/>
+        <param name="debugchance" value="$debugchance"/>
+        <param name="debugchance2" value="$debugchance2"/>
+        <save_retval name="selloffer" variable="$selloffer" />
+        <save_retval name="buyoffer" variable="$buyoffer" />
+        <save_retval name="failurereason" variable="$failurereason"/>
+      </run_script>
+    </do_else>
+  </replace>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <replace sel="//params/param[@name='debugchance']">
+    <param name="useallplayerstationsbuyers" default="false" type="bool" comment="If enabled, allow player-owned stations as buy partners outside normal sellspaces."/>
+    <param name="useallplayerstationssellers" default="false" type="bool" comment="If enabled, allow player-owned stations as sell partners outside normal buyspaces."/>
+    <param name="debugchance" default="0"/>
+  </replace>
+
+  <replace sel="//do_for_each[@name='$buyoffer_local'][@in='$buyoffers'][@reverse='true']">
+    <do_if value="this.isplayerowned and $useallplayerstationsbuyers">
+      <do_if value="@$selloffers.{$i}.restriction.factions.count">
+        <find_buy_offer tradepartner="this.ship" wares="$selloffers.{$i}.ware" space="player.galaxy" result="$playerstations_buyoffers" multiple="true">
+          <match_buyer owner="$selloffers.{$i}.restriction.factions" negateownerfilter="$selloffers.{$i}.restriction.inverted" tradesknownto="this.owner" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_buyer>
+          <relativeprice min="$selloffers.{$i}.relativeprice" tradepartner="if this.ship.isplayerowned then this.ship else null" comment="price must be at or above the relative price at the station to be considered" />
+        </find_buy_offer>
+      </do_if>
+      <do_else>
+        <find_buy_offer tradepartner="this.ship" wares="$selloffers.{$i}.ware" space="player.galaxy" result="$playerstations_buyoffers" multiple="true">
+          <relativeprice min="$selloffers.{$i}.relativeprice" tradepartner="if this.ship.isplayerowned then this.ship else null" comment="price must be at or above the relative price at the station to be considered" />
+          <match_buyer tradesknownto="this.owner" excluded="$homebase" owner="[faction.player]" negateownerfilter="false">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_buyer>
+        </find_buy_offer>
+      </do_else>
+      <do_for_each name="$playerstations_buyoffer" in="$playerstations_buyoffers">
+        <do_if value="$playerstations_buyoffer.available and not $buyoffers.indexof.{$playerstations_buyoffer}">
+          <append_to_list name="$buyoffers" exact="$playerstations_buyoffer"/>
+        </do_if>
+      </do_for_each>
+      <remove_value name="$playerstations_buyoffer"/>
+      <remove_value name="$playerstations_buyoffers"/>
+    </do_if>
+
+    <do_for_each name="$buyoffer_local" in="$buyoffers" reverse="true">
+      <do_if value="$buyoffer_local.owner == $selloffers.{$i}.owner">
+        <debug_text text="'$buyoffer_local.owner: %s == $selloffers.{$i}.owner: %s. skipping buy offer.'.[$buyoffer_local.owner, $selloffers.{$i}.owner]" chance="$debugchance" />
+        <continue/>
+      </do_if>
+
+      <set_value name="$loctradevalue" exact="[$buyoffer_local.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$buyoffer_local.ware}.free].min * $buyoffer_local.ware.volume * ($buyoffer_local.relativeprice + 2)"/>
+      <do_if value="not $smuggle and this.assignedcontrolled.hidecargochance lt 100 and $buyoffer_local.owner.zone.policefaction and $buyoffer_local.ware.illegalto.{$buyoffer_local.owner.zone.policefaction}.{this.owner} and ($buyoffer_local.owner.zone.policefaction != this.owner)">
+        <debug_text text="'%s illegal in %s %s and we are not smuggling. discarding trade.'.[$buyoffer_local.ware, $sellspaces.{$s}.class, $sellspaces.{$s}.knownname]" chance="$debugchance"/>
+        <remove_value name="$buyoffers.{loop.index}"/>
+      </do_if>
+      <do_elseif value="$loctradevalue and (not @$buyoffer.available or ($loctradevalue gt $tradevalue))">
+        <set_value name="$buyoffer" exact="$buyoffer_local"/>
+        <set_value name="$tradevalue" exact="$loctradevalue"/>
+        <debug_text text="'selling %s with a trade value of %s\ntrade price: %s,\nunit price: %s (before commissions)\namount: %s.'.[$buyoffer.ware, $tradevalue, [$buyoffer.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$buyoffer.ware}.free].min * $buyoffer.unitprice, $buyoffer.unitprice, $buyoffer.unitprice, [$buyoffer.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$buyoffer.ware}.free].min]" chance="$debugchance"/>
+      </do_elseif>
+      <remove_value name="$loctradevalue"/>
+    </do_for_each>
+  </replace>
+
+  <replace sel="//do_for_each[@name='$selloffer_local'][@in='$selloffers'][@reverse='true']">
+    <do_if value="this.isplayerowned and $useallplayerstationssellers">
+      <do_if value="@$buyoffers.{$i}.restriction.factions.count">
+        <find_sell_offer tradepartner="this.ship" wares="$buyoffers.{$i}.ware" space="player.galaxy" result="$playerstations_selloffers" multiple="true">
+          <relativeprice max="$evalrelprice" tradepartner="if this.ship.isplayerowned then this.ship else null"/>
+          <match_seller owner="$buyoffers.{$i}.restriction.factions" negateownerfilter="$buyoffers.{$i}.restriction.inverted" tradesknownto="this.owner" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_seller>
+        </find_sell_offer>
+      </do_if>
+      <do_else>
+        <find_sell_offer tradepartner="this.ship" wares="$buyoffers.{$i}.ware" space="player.galaxy" result="$playerstations_selloffers" multiple="true">
+          <relativeprice max="$evalrelprice" tradepartner="if this.ship.isplayerowned then this.ship else null"/>
+          <totalvolume min="$minvolume"/>
+          <match_seller tradesknownto="this.owner" owner="[faction.player]" negateownerfilter="false" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_seller>
+        </find_sell_offer>
+      </do_else>
+      <do_for_each name="$playerstations_selloffer" in="$playerstations_selloffers">
+        <do_if value="$playerstations_selloffer.available and not $selloffers.indexof.{$playerstations_selloffer}">
+          <append_to_list name="$selloffers" exact="$playerstations_selloffer"/>
+        </do_if>
+      </do_for_each>
+      <remove_value name="$playerstations_selloffer"/>
+      <remove_value name="$playerstations_selloffers"/>
+    </do_if>
+
+    <do_for_each name="$selloffer_local" in="$selloffers" reverse="true">
+      <do_if value="@$buyoffers.{$i}.owner == @$selloffer_local.owner">
+        <debug_text text="'$buyoffers.{$i}.owner: %s == $selloffer_local.owner: %s. skipping sell offer.'.[$buyoffers.{$i}.owner, $selloffer_local.owner]" chance="$debugchance" />
+        <continue/>
+      </do_if>
+
+      <set_value name="$loctradevalue" exact="[$selloffer_local.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$selloffer_local.ware}.free].min * $selloffer_local.ware.volume * -($selloffer_local.relativeprice - 2)"/>
+      <do_if value="not $smuggle and this.assignedcontrolled.hidecargochance lt 100 and $selloffer_local.owner.zone.policefaction and $selloffer_local.ware.illegalto.{$selloffer_local.owner.zone.policefaction}.{this.owner} and ($selloffer_local.owner.zone.policefaction != this.owner)">
+        <debug_text text="'%s illegal in %s %s and we are not smuggling. discarding trade.'.[$selloffer_local.ware, $buyspaces.{$b}.class, $buyspaces.{$b}.knownname]" chance="$debugchance"/>
+        <remove_value name="$selloffers.{loop.index}"/>
+      </do_if>
+      <do_elseif value="$loctradevalue and (not @$selloffer.available or ($loctradevalue gt $tradevalue))">
+        <set_value name="$selloffer" exact="$selloffer_local"/>
+        <set_value name="$tradevalue" exact="$loctradevalue"/>
+        <debug_text text="'buying %s with a trade value of %s\ntrade price: %s,\nunit price: %s (before discounts)\namount: %s.'.[$selloffer.ware, $tradevalue, [$selloffer.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$selloffer.ware}.free].min * $selloffer.unitprice, $selloffer.unitprice, [$selloffer.offeramount.{this.assignedcontrolled}, this.assignedcontrolled.cargo.{$selloffer.ware}.free].min]" chance="$debugchance"/>
+      </do_elseif>
+      <remove_value name="$loctradevalue"/>
+    </do_for_each>
+  </replace>
+</diff>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <replace sel="//run_script[@name='$findtradescript']">
+    <do_if value="$findtradescript == 'trade.find.commander'">
+      <run_script name="$findtradescript">
+        <param name="warebasket" value="$warebasket" />
+        <param name="manualwarebasket" value="$warebasket_override"/>
+        <param name="range" value="$range" />
+        <param name="sellspaces" value="$sellspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="buyspaces" value="$buyspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="tradeforbuildstorage" value="$tradeforbuildstorage"/>
+        <param name="smuggle" value="$usecover"/>
+        <param name="buyfromfactions" value="$buyfromfactions"/>
+        <param name="selltofactions" value="$selltofactions"/>
+        <param name="debugchance" value="$debugchance"/>
+        <param name="debugchance2" value="$debugchance2"/>
+        <save_retval name="selloffer" variable="$selloffer" />
+        <save_retval name="buyoffer" variable="$buyoffer" />
+        <save_retval name="failurereason" variable="$failurereason"/>
+      </run_script>
+    </do_if>
+    <do_else>
+      <run_script name="$findtradescript">
+        <param name="warebasket" value="$warebasket" />
+        <param name="manualwarebasket" value="$warebasket_override"/>
+        <param name="range" value="$range" />
+        <param name="sellspaces" value="$sellspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="buyspaces" value="$buyspaces.clone" comment="pass a copy so it can be modified on the find script"/>
+        <param name="tradeforbuildstorage" value="$tradeforbuildstorage"/>
+        <param name="smuggle" value="$usecover"/>
+        <param name="buyfromfactions" value="$buyfromfactions"/>
+        <param name="selltofactions" value="$selltofactions"/>
+        <param name="debugchance" value="$debugchance"/>
+        <param name="debugchance2" value="$debugchance2"/>
+        <save_retval name="selloffer" variable="$selloffer" />
+        <save_retval name="buyoffer" variable="$buyoffer" />
+        <save_retval name="failurereason" variable="$failurereason"/>
+      </run_script>
+    </do_else>
+  </replace>
+</diff>

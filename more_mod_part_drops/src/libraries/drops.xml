@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <!-- Add wpsmod_rare_02 drops when wpsmod_rare_01 -->
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='10'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="1">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_02"/>
+      </collectable>
+    </drop>
+  </add>
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='30'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="11">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_02"/>
+      </collectable>
+    </drop>
+  </add>
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='40'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="21">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_02"/>
+      </collectable>
+    </drop>
+  </add>
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='50'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="31">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_02"/>
+      </collectable>
+    </drop>
+  </add>
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='90'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="41">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_02"/>
+      </collectable>
+    </drop>
+  </add>
+
+  <!-- Add wpsmod_rare_01 drops when wpsmod_common_01 -->
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_common_01_macro'][@chance='25'] and not(drop[@macro='sm_gen_wpsmod_rare_01_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_01_macro" min="1" max="1" chance="11">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_01"/>
+      </collectable>
+    </drop>
+  </add>
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_common_01_macro'][@chance='70'] and not(drop[@macro='sm_gen_wpsmod_rare_01_macro'])]">
+    <drop macro="sm_gen_wpsmod_rare_01_macro" min="1" max="1" chance="31">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_01"/>
+      </collectable>
+    </drop>
+  </add>
+
+  <!-- Increase existing wpsmod_common_01 drop likelihood -->
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_common_01_macro'][@chance='25']/@chance">69</replace>
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_common_01_macro'][@chance='70']/@chance">99</replace>
+
+  <!-- Increase existing wpsmod_rare_01 drop likelihood -->
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='10']/@chance">29</replace>
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='30']/@chance">59</replace>
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='40']/@chance">79</replace>
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='50']/@chance">89</replace>
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='90']/@chance">99</replace>
+
+  <!-- Increase existing wpsmod_rare_02 drop likelihood -->
+  <replace sel="/droplists/droplist/drop[@macro='sm_gen_wpsmod_rare_02_macro'][@chance='10']/@chance">49</replace>
+</diff>

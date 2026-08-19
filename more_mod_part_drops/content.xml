@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="more_mod_part_drops" name="More Mod Part Drops" description="Increases the drop likelihood of mod parts" author="mitternachtssurfer" version="1.0" date="2026-07-07" save="0">
+  <text language="49" name="Mehr Modifikationsteil-Drops" description="Erhöht die Drop-Wahrscheinlichkeit von Modifikationsteilen" />
+</content>

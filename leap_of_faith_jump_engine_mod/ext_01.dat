@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="/equipmentmods/engine">
+    <!-- Tier 2 (quality=2) with placeholder travel-thrust bonus -->
+    <travelthrust ware="mod_engine_leap_of_faith_jump" quality="2" min="1.0" max="1.0"/>
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="/wares">
+    <!-- Research: unlocks the leap of faith jump engine mod -->
+    <ware id="research_mod_engine_leap_of_faith_jump" name="{9000001,10}" description="{9000001,11}" transport="research" volume="1" tags="research">
+      <price min="1" average="1" max="1" />
+      <research time="600">
+        <primary>
+          <ware ware="condensate" amount="300" />
+          <ware ware="advancedelectronics" amount="3000" />
+          <ware ware="energycells" amount="7500" />
+          <ware ware="fieldcoils" amount="750" />
+        </primary>
+      </research>
+    </ware>
+
+    <ware id="mod_engine_leap_of_faith_jump" name="{9000001,12}" description="{9000001,13}" transport="inventory" volume="1" tags="crafting equipmentmod">
+      <price min="212500" average="250000" max="287500" />
+      <production time="10" amount="1" method="default" name="{20206,101}">
+        <primary>
+          <ware ware="modpart_enginefuelinjector_t2" amount="1" />
+          <ware ware="modpart_extendedfuelcontainer" amount="3" />
+          <ware ware="modpart_nividiumoxide" amount="3" />
+        </primary>
+        <research>
+          <ware ware="research_mod_engine_leap_of_faith_jump" />
+          <ware ware="research_mod_engine_mk2" />
+        </research>
+      </production>
+    </ware>
+  </add>
+</diff>
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="LeapOfFaithJumpEngineMod" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+
+    <!--
+      Init. Fires on every load (md.Setup.Start). Resolves the sectors/anomaly objects.
+    -->
+    <cue name="LeapOfFaithJumpEngineMod_Init" mapeditor="false">
+      <conditions>
+        <event_cue_signalled cue="md.Setup.Start"/>
+      </conditions>
+      <actions>
+        <find_sector name="$SectorAvarice" macro="macro.cluster_500_sector002_macro" required="false"/>
+        <find_sector name="$SectorLeapOfFaith" macro="macro.cluster_504_sector001_macro" required="false"/>
+        <do_if value="$SectorAvarice? and $SectorLeapOfFaith?">
+          <find_object name="$AnomalyAvarice" class="class.anomaly" space="$SectorAvarice" multiple="false" godobjectentry="'S2B_anomaly_01'" required="false"/>
+          <find_object name="$AnomalyLeapOfFaith" class="class.anomaly" space="$SectorLeapOfFaith" multiple="false" godobjectentry="'S3_anomaly_01'" required="false"/>
+        </do_if>
+        <!--
+          event_object_entered_anomaly needs an "object" or "group" attribute to watch (entry/exit
+          only filter which anomaly). $PlayerOwnedShips is a galaxy-wide group of player-owned
+          ships, refreshed periodically below - group membership can change after the event
+          condition is set up.
+        -->
+        <create_group groupname="$PlayerOwnedShips"/>
+        <find_ship groupname="$PlayerOwnedShips" owner="faction.player" space="player.galaxy" multiple="true"/>
+        <!--
+          Re-arm CollectJumpData/Correct_FromAvarice synchronously, right after $PlayerOwnedShips
+          exists - avoids a window where their event condition would still reference an invalid
+          group from script-load time. The checkinterval versions below handle the case where the
+          plot/research complete later in the same session.
+        -->
+        <do_if value="LeapOfFaithJumpEngineMod_CollectJumpData.state != cuestate.complete">
+          <reset_cue cue="LeapOfFaithJumpEngineMod_CollectJumpData"/>
+        </do_if>
+        <do_if value="ware.research_mod_engine_leap_of_faith_jump.research.unlocked">
+          <reset_cue cue="LeapOfFaithJumpEngineMod_Correct_FromAvarice"/>
+        </do_if>
+      </actions>
+
+      <cues>
+        <!--
+          Keeps $PlayerOwnedShips in sync with newly bought/built or lost/sold ships. Runs forever
+          - needed by CollectJumpData during the counting phase, then by Correct_FromAvarice for
+          the rest of the game.
+        -->
+        <cue name="LeapOfFaithJumpEngineMod_RefreshPlayerShips" checkinterval="5s">
+          <conditions>
+            <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
+          </conditions>
+          <actions>
+            <clear_group group="$PlayerOwnedShips"/>
+            <find_ship groupname="$PlayerOwnedShips" owner="faction.player" space="player.galaxy" multiple="true"/>
+          </actions>
+          <delay min="10s" max="60s"/>
+          <actions>
+            <reset_cue cue="this"/>
+          </actions>
+        </cue>
+
+        <!--
+          Boso Ta's jump-data storyline: counts jumps by any player-owned ship from Avarice to 
+          Leap of Faith, only once the Northriver Plot is done.
+          Ch10_Epilogue is used instead of Ch10_Finished, which can show state cancelled even on a
+          completed playthrough - mirrors Egosoft's own equivalent check in story_thefan.xml.
+
+          - 1st qualifying jump: Boso Ta notices a pattern (message 200/201).
+          - 5th qualifying jump: Boso Ta has enough data, sends message 210/211 and reveals the
+            research. Adjust the "ge 5" below to taste.
+
+          $JumpCount is a local variable that persists across reset_cue (vanilla pattern, e.g.
+          lib_dialog.xml's "$CurrentActor operation=add" + reset_cue cue="this").
+        -->
+        <cue name="LeapOfFaithJumpEngineMod_CollectJumpData_Init" mapeditor="false" checkinterval="5s">
+          <conditions>
+            <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
+          </conditions>
+          <actions>
+            <!--
+              Re-arms CollectJumpData now that $PlayerOwnedShips exists. Skipped if already
+              complete, to avoid re-triggering the reveal message/encyclopedia entry on a save
+              where the threshold was already reached.
+            -->
+            <do_if value="LeapOfFaithJumpEngineMod_CollectJumpData.state != cuestate.complete">
+              <reset_cue cue="LeapOfFaithJumpEngineMod_CollectJumpData"/>
+            </do_if>
+          </actions>
+          <cues>
+            <cue name="LeapOfFaithJumpEngineMod_CollectJumpData" mapeditor="false">
+              <conditions>
+                <event_object_entered_anomaly entry="$AnomalyAvarice" group="$PlayerOwnedShips"/>
+              </conditions>
+              <actions>
+                <do_if value="md.Story_Thefan.Ch10_Epilogue.exists and (md.Story_Thefan.Ch10_Epilogue.state == cuestate.complete or md.Story_Thefan.Ch10_Epilogue.state == cuestate.cancelled) and event.param2 == $AnomalyLeapOfFaith">
+                  <set_value name="$JumpCount" operation="add" exact="1"/>
+                  <do_if value="$JumpCount == 1">
+                    <write_incoming_message highpriority="true" title="{9000001,200}" text="{9000001,201}" source="{9000001,202}"/>
+                  </do_if>
+                  <do_if value="$JumpCount ge 5">
+                    <write_incoming_message highpriority="true" title="{9000001,210}" text="{9000001,211}" source="{9000001,202}"/>
+                    <add_encyclopedia_entry type="researchables" item="'research_mod_engine_leap_of_faith_jump'"/>
+                  </do_if>
+                </do_if>
+                <do_if value="not ($JumpCount? and $JumpCount ge 5)">
+                  <reset_cue cue="this"/>
+                </do_if>
+              </actions>
+            </cue>
+          </cues>
+        </cue>
+
+        <!--
+          Gameplay payoff: once the research is unlocked, a ship fitted with
+          mod_engine_leap_of_faith_jump always reaches Leap of Faith, regardless of event.param2.
+          We don't touch add_anomaly_destination: vanilla already guarantees Leap of Faith during
+          the wave (only destination added then, so the "random" pick is trivial) and blocks it
+          outside the wave (empty destinations, anomaly's own chaos fallback). Adding our own
+          would leak it in as an option for every ship, not just modded ones. Correction is scoped
+          to $PlayerOwnedShips since the mod is only obtainable by crafting.
+        -->
+        <cue name="LeapOfFaithJumpEngineMod_JumpCorrection_Init" checkinterval="20s">
+          <conditions>
+            <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
+            <check_value value="ware.research_mod_engine_leap_of_faith_jump.research.unlocked"/>
+          </conditions>
+          <actions>
+            <reset_cue cue="LeapOfFaithJumpEngineMod_Correct_FromAvarice"/>
+          </actions>
+
+          <cues>
+            <cue name="LeapOfFaithJumpEngineMod_Correct_FromAvarice" instantiate="true">
+              <conditions>
+                <event_object_entered_anomaly entry="$AnomalyAvarice" group="$PlayerOwnedShips"/>
+              </conditions>
+              <actions>
+                <check_object object="event.object" result="$HasJumpMod">
+                  <match_engine_mod ware="ware.mod_engine_leap_of_faith_jump"/>
+                </check_object>
+                <do_if value="$HasJumpMod and event.param2 != $AnomalyLeapOfFaith">
+                  <!--
+                    Safe-warp distance scaled by ship size class - a bigger ship needs more
+                    clearance to avoid overlapping the anomaly or anything docked/nearby.
+                  -->
+                  <do_if value="event.object.class == class.ship_xs">
+                    <set_value name="$CorrectMin" exact="20m"/>
+                    <set_value name="$CorrectMax" exact="50m"/>
+                  </do_if>
+                  <do_elseif value="event.object.class == class.ship_s">
+                    <set_value name="$CorrectMin" exact="50m"/>
+                    <set_value name="$CorrectMax" exact="150m"/>
+                  </do_elseif>
+                  <do_elseif value="event.object.class == class.ship_m">
+                    <set_value name="$CorrectMin" exact="200m"/>
+                    <set_value name="$CorrectMax" exact="500m"/>
+                  </do_elseif>
+                  <do_elseif value="event.object.class == class.ship_l">
+                    <set_value name="$CorrectMin" exact="1km"/>
+                    <set_value name="$CorrectMax" exact="3km"/>
+                  </do_elseif>
+                  <do_else comment="ship_xl or anything unexpected">
+                    <set_value name="$CorrectMin" exact="2km"/>
+                    <set_value name="$CorrectMax" exact="5km"/>
+                  </do_else>
+                  <warp object="event.object" sector="$SectorLeapOfFaith">
+                    <safepos object="$AnomalyLeapOfFaith" min="$CorrectMin" max="$CorrectMax"/>
+                  </warp>
+                </do_if>
+              </actions>
+            </cue>
+          </cues>
+        </cue>
+      </cues>
+    </cue>
+
+  </cues>
+</mdscript>
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="9000001" title="Leap of Faith Jump Engine Mod - Custom Texts" descr="Custom research, equipment mod and message texts added by the Leap of Faith Jump Engine Mod" voice="no">
+    <!-- Research: unlocked once enough jump data points have been collected -->
+    <t id="10">Anomaly Jump Pattern Research</t>
+    <t id="11">Boso Ta's analysis of the jump data collected from ships crossing the anomaly between Avarice and Leap of Faith reveals a consistent pattern - enough to design an engine modification that lets any ship make the crossing permanently.</t>
+    <!-- Engine mod (unlocked by the research) -->
+    <t id="12">Leap of Faith Jump Stabilizer</t>
+    <t id="13">An engine modification developed from Boso Ta's anomaly jump research. Ships fitted with it can permanently traverse the anomaly between Avarice and Leap of Faith.</t>
+    <!-- Message 1: after story completed + first jump Avarice -> Leap of Faith -->
+    <t id="200">A Revealing Pattern</t>
+    <t id="201">The data from your jump through the Avarice V anomaly to Leap of Faith is quite revealing. I believe there's a pattern here. If I could get a few more data points, I'm sure it would lead to an exciting research opportunity.</t>
+    <!-- Message 2: after enough further jumps - research gets unlocked -->
+    <t id="210">Enough Data</t>
+    <t id="211">I've gathered enough jump data now to chart a reliable pattern! I can start real research on an engine modification that should let any ship make the crossing permanently.</t>
+    <!-- Message source -->
+    <t id="202">Boso Ta</t>
+  </page>
+</language>
+<?xml version="1.0" encoding="utf-8"?>
+<language id="49">
+  <page id="9000001" title="Glaubenssprung-Sprungantriebsmod - Eigene Texte" descr="Eigene Forschungs-, Ausruestungsmod- und Nachrichtentexte des Mods 'Glaubenssprung-Sprungantriebsmod'" voice="no">
+    <!-- Forschung: Sprungmuster-Antriebsforschung (Freischaltung durch genuegend Sprung-Datenpunkte) -->
+    <t id="10">Anomalie-Sprungmuster-Forschung</t>
+    <t id="11">Boso Tas Analyse der gesammelten Sprungdaten von Schiffen, die die Anomalie zwischen Habgier und Glaubenssprung durchqueren, zeigt ein konsistentes Muster - genug, um eine Antriebsmodifikation zu entwickeln, die es jedem Schiff ermoeglicht, dauerhaft hindurchzukommen.</t>
+    <!-- Antriebsmod (Freischaltung durch die Forschung) -->
+    <t id="12">Glaubenssprung-Sprungstabilisierer</t>
+    <t id="13">Eine Antriebsmodifikation, entwickelt aus Boso Tas Forschung zu den Anomalie-Sprungdaten. Damit ausgeruestete Schiffe koennen die Anomalie zwischen Habgier und Glaubenssprung dauerhaft durchqueren.</t>
+    <!-- Nachricht 1: nach Story-Abschluss + erstem Sprung Habgier -> Glaubenssprung -->
+    <t id="200">Ein aufschlussreiches Muster</t>
+    <t id="201">Die Daten beim Sprung durch die Habgier V Anomalie nach Glaubenssprung sind aufschlussreich. Ich glaube es gibt dort ein Muster. Wenn ich weitere Daten erhalten koennte, wuerde sich daraus sicher eine spannende Forschungsmoeglichkeit ergeben.</t>
+    <!-- Nachricht 2: nach genuegend weiteren Sprüngen - Forschung wird freigeschaltet -->
+    <t id="210">Genuegend Daten</t>
+    <t id="211">Ich habe jetzt genuegend Sprungdaten gesammelt, um ein zuverlaessiges Muster zu erkennen! Ich kann mit der eigentlichen Forschung an einer Antriebsmodifikation beginnen, die es jedem Schiff ermoeglichen sollte, dauerhaft hindurchzukommen.</t>
+    <!-- Nachrichtenquelle -->
+    <t id="202">Boso Ta</t>
+  </page>
+</language>

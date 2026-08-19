@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="//do_for_each[@name='$buyoffer_local'][@in='$buyoffers'][@reverse='true']" pos="before">
+    <do_if value="this.isplayerowned">
+      <do_if value="@$selloffers.{$i}.restriction.factions.count">
+        <find_buy_offer tradepartner="this.ship" wares="$selloffers.{$i}.ware" space="player.galaxy" result="$playerstations_buyoffers" multiple="true">
+          <match_buyer owner="$selloffers.{$i}.restriction.factions" negateownerfilter="$selloffers.{$i}.restriction.inverted" tradesknownto="this.owner" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_buyer>
+          <relativeprice min="$selloffers.{$i}.relativeprice" tradepartner="if this.ship.isplayerowned then this.ship else null" comment="price must be at or above the relative price at the station to be considered" />
+        </find_buy_offer>
+      </do_if>
+      <do_else>
+        <find_buy_offer tradepartner="this.ship" wares="$selloffers.{$i}.ware" space="player.galaxy" result="$playerstations_buyoffers" multiple="true">
+          <relativeprice min="$selloffers.{$i}.relativeprice" tradepartner="if this.ship.isplayerowned then this.ship else null" comment="price must be at or above the relative price at the station to be considered" />
+          <match_buyer tradesknownto="this.owner" excluded="$homebase" owner="[faction.player]" negateownerfilter="false">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_buyer>
+        </find_buy_offer>
+      </do_else>
+      <do_for_each name="$playerstations_buyoffer" in="$playerstations_buyoffers">
+        <do_if value="$playerstations_buyoffer.available and not $buyoffers.indexof.{$playerstations_buyoffer}">
+          <append_to_list name="$buyoffers" exact="$playerstations_buyoffer"/>
+        </do_if>
+      </do_for_each>
+      <remove_value name="$playerstations_buyoffer"/>
+      <remove_value name="$playerstations_buyoffers"/>
+    </do_if>
+  </add>
+
+  <add sel="//do_for_each[@name='$selloffer_local'][@in='$selloffers'][@reverse='true']" pos="before">
+    <do_if value="this.isplayerowned">
+      <do_if value="@$buyoffers.{$i}.restriction.factions.count">
+        <find_sell_offer tradepartner="this.ship" wares="$buyoffers.{$i}.ware" space="player.galaxy" result="$playerstations_selloffers" multiple="true">
+          <relativeprice max="$evalrelprice" tradepartner="if this.ship.isplayerowned then this.ship else null"/>
+          <match_seller owner="$buyoffers.{$i}.restriction.factions" negateownerfilter="$buyoffers.{$i}.restriction.inverted" tradesknownto="this.owner" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_seller>
+        </find_sell_offer>
+      </do_if>
+      <do_else>
+        <find_sell_offer tradepartner="this.ship" wares="$buyoffers.{$i}.ware" space="player.galaxy" result="$playerstations_selloffers" multiple="true">
+          <relativeprice max="$evalrelprice" tradepartner="if this.ship.isplayerowned then this.ship else null"/>
+          <totalvolume min="$minvolume"/>
+          <match_seller tradesknownto="this.owner" owner="[faction.player]" negateownerfilter="false" excluded="$homebase">
+            <match_use_blacklist group="$blacklistgroup" type="blacklisttype.objectactivity" object="this.ship"/>
+          </match_seller>
+        </find_sell_offer>
+      </do_else>
+      <do_for_each name="$playerstations_selloffer" in="$playerstations_selloffers">
+        <do_if value="$playerstations_selloffer.available and not $selloffers.indexof.{$playerstations_selloffer}">
+          <append_to_list name="$selloffers" exact="$playerstations_selloffer"/>
+        </do_if>
+      </do_for_each>
+      <remove_value name="$playerstations_selloffer"/>
+      <remove_value name="$playerstations_selloffers"/>
+    </do_if>
+  </add>
+</diff>

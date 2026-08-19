@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="9000005" title="Get Rid of Illegal Inventory - Custom Texts" descr="Custom logbook texts added by the Get Rid of Illegal Inventory mod" voice="no">
+    <!-- Logbook entry: illegal cargo/inventory destroyed while complying with a police inspection -->
+    <t id="10">Illegal Items Destroyed</t>
+    <t id="11">During a police inspection, I had to destroy the following illegal items: %s</t>
+  </page>
+</language>

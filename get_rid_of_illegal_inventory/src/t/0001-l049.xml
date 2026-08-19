@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="49">
+  <page id="9000005" title="Illegales Inventar loswerden - Eigene Texte" descr="Eigene Logbuch-Texte des Mods 'Illegales Inventar loswerden'" voice="no">
+    <!-- Logbucheintrag: illegale Fracht/Inventar wurde bei Kooperation mit einer Polizeikontrolle vernichtet -->
+    <t id="10">Illegale Gegenstände vernichtet</t>
+    <t id="11">Bei einer Polizeikontrolle musste ich folgende illegale Gegenstände vernichten: %s</t>
+  </page>
+</language>

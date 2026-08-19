@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <!-- Vanilla drop_illegal_cargo/drop_illegal_inventory spawn a physical, collectable crate right next to the
+       ship (distance ~0m). Any script that auto-collects nearby loot (e.g. "loot magnet" style mods, or the
+       player manually) can grab that crate again before the police re-check completes, so the ship still
+       counts as carrying contraband and gets flagged hostile despite having "complied". Replacing the drop
+       with remove_cargo/remove_inventory deletes the illegal wares outright instead of spawning anything
+       pickupable, so there is nothing left to re-collect. -->
+  <replace sel="//do_if[@value=&quot;$response == 'comply'&quot;]/do_if[@value=&quot;$mode == 'policehalt'&quot;]">
+    <do_if value="$mode == 'policehalt'">
+      <set_value name="$speakline" exact="6009" comment="Releasing cargo now."/>
+      <debug_text text="'decision: complying with police ship. waiting until told to proceed.'" chance="$debugchance"/>
+
+      <set_value name="$illegalcount" exact="0"/>
+
+      <do_if value="not this.assignedcontrolled.hidecargochance">
+        <do_for_each name="$evalware" in="this.assignedcontrolled.cargo.list">
+          <do_if value="$evalware.illegalto.{this.zone.policefaction}">
+            <set_value name="$evalcount" exact="this.assignedcontrolled.cargo.{$evalware}.count"/>
+            <remove_cargo object="this.assignedcontrolled" ware="$evalware" exact="$evalcount"/>
+            <set_value name="$illegalcount" exact="$illegalcount + $evalcount"/>
+          </do_if>
+        </do_for_each>
+      </do_if>
+
+      <do_for_each name="$evalware" in="this.inventory.list">
+        <do_if value="$evalware.illegalto.{this.zone.policefaction}">
+          <set_value name="$evalcount" exact="this.inventory.{$evalware}.count"/>
+          <remove_inventory entity="this" ware="$evalware" exact="$evalcount"/>
+          <set_value name="$illegalcount" exact="$illegalcount + $evalcount"/>
+        </do_if>
+      </do_for_each>
+      <remove_value name="$evalware"/>
+      <remove_value name="$evalcount"/>
+
+      <do_if value="$illegalcount gt 0">
+        <set_value name="$usecase" exact="'$InspectCargo_Police_Comply_Illegal'" />
+        <debug_text text="'inspector: %s %s %s\nresponse: %s\nremoved %s illegal units (deleted, no crate spawned)'.[@$inspector.idcode, @$inspector.knownname, @$inspector, @$inspector.signal.{'policefoundcontraband'}.response.id, $illegalcount]" chance="$debugchance"/>
+      </do_if>
+      <do_else>
+        <set_value name="$usecase" exact="'$InspectCargo_Police_Comply_Legal'" />
+      </do_else>
+      <remove_value name="$illegalcount"/>
+
+      <create_order id="'WaitForSignal'" object="this.assignedcontrolled" immediate="true" override="true">
+        <param name="timeout" value="1h"/>
+        <param name="releasesignal" value="['proceed', $inspector]"/>
+        <param name="signaller" value="$inspector"/>
+        <param name="noattackresponse" value="@$noattackresponse"/>
+        <param name="debugchance" value="$debugchance"/>
+      </create_order>
+    </do_if>
+  </replace>
+</diff>

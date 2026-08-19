@@ -84,7 +84,7 @@
 </diff>
 <?xml version="1.0" encoding="utf-8"?>
 <diff>
-  <replace sel="//defaults/dataset[@class='ship_xs']/properties/radar/@range">20000</replace>
+  <replace sel="//defaults/dataset[@class='spacesuit']/properties/radar/@range">20000</replace>
   <replace sel="//defaults/dataset[@class='ship_m']/properties/radar/@range">50000</replace>
   <replace sel="//defaults/dataset[@class='ship_l']/properties/radar/@range">60000</replace>
   <replace sel="//defaults/dataset[@class='ship_xl']/properties/radar/@range">70000</replace>
