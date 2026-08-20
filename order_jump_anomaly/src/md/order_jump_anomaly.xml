@@ -2,30 +2,16 @@
 <mdscript name="OrderJumpAnomaly" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
   <cues>
 
-    <!--
-      How big a radius around a navigation beacon (class.navbeacon) counts as
-      "placed to mark an anomaly" - anomalies never show on the map, so a
-      player-dropped beacon near one is the only precise, clickable stand-in.
-      5km matches the range the player suggested; wide enough to cover a beacon
-      dropped slightly off from the anomaly's exact position, narrow enough to
-      not accidentally pick up an unrelated anomaly elsewhere in the sector.
-    -->
+    <!-- Search radius around a nav beacon that counts as "placed to mark an anomaly"
+         (anomalies never show on the map, so a nearby beacon is the clickable stand-in). -->
     <cue name="OrderJumpAnomaly_Globals">
       <actions>
         <set_value name="OrderJumpAnomaly_Globals.$BeaconSearchRadius" exact="5km"/>
       </actions>
     </cue>
 
-    <!--
-      Listens for every interact menu (right-click) opening in the game and,
-      if the target is a navigation beacon with an anomaly nearby and at least
-      one player ship is selected, adds a custom action via SirNukes' Interact
-      Menu API (md.Interact_Menu_API, part of sn_mod_support_apis). This is
-      the only available hook for conditionally adding a right-click order
-      without touching Egosoft's own menu lua - confirmed via
-      sn_mod_support_apis' own Interact_Menu_API.xml doc comments
-      (event.param.$object / $selectedplayerships / $showPlayerInteractions).
-    -->
+    <!-- Adds a right-click action via SirNukes' Interact Menu API when the target is a beacon
+         near an anomaly and at least one player ship is selected. -->
     <cue name="OrderJumpAnomaly_AddAction" instantiate="true">
       <conditions>
         <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
@@ -54,12 +40,8 @@
       </actions>
     </cue>
 
-    <!--
-      Fired when the player actually selects the action. Sends every
-      currently selected player ship (not just a single one) towards the
-      anomaly found earlier - handed through untouched via $echo, so we don't
-      need to re-search for it and risk picking a different one.
-    -->
+    <!-- Fired on selecting the action. Sends every selected player ship to the anomaly
+         found earlier, passed through via $echo. -->
     <cue name="OrderJumpAnomaly_Callback" instantiate="true">
       <conditions>
         <event_cue_signalled/>
@@ -76,25 +58,8 @@
       </actions>
     </cue>
 
-    <!--
-      One instance per commanded ship. Queues a single custom JumpAnomaly
-      order (aiscripts/order.jump.anomaly.xml), appended to whatever the
-      ship's order queue already contains (eg. a manually clicked-together
-      fly-here/do-that list) - not immediate, so this adds "then jump through
-      the anomaly" at the end instead of shoving the ship's current order
-      aside.
-
-      JumpAnomaly itself flies the ship to the anomaly if needed (creating
-      its own immediate MoveToObject sub-order first, same pattern as
-      Egosoft's own DockAndWait/DockAt - see that script for why this needs
-      to be re-validated on every restart rather than trusted as a one-off
-      "get there" step done in advance). An earlier version queued
-      MoveToObject here in MD as a separate, once-only order ahead of
-      JumpAnomaly; that broke if the player inserted a manual order between
-      the two, since JumpAnomaly only checked its position once and could
-      end up jumping from wherever the inserted order had since taken the
-      ship, rather than from the anomaly.
-    -->
+    <!-- One instance per commanded ship. Appends the custom JumpAnomaly order (aiscripts/order.jump.anomaly.xml)
+         to the ship's queue; that order handles flying to the anomaly itself if needed. -->
     <cue name="OrderJumpAnomaly_SendShip" instantiate="true">
       <conditions>
         <event_cue_signalled/>

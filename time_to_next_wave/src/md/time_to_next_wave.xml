@@ -2,37 +2,12 @@
 <mdscript name="TimeToNextWave" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
   <cues>
 
-    <!--
-      Holding cue for:
-      * $TidebreakStation, $WaveCluster, $WaveClusterCelestialBody
-        - The one Tidebreak ('Wellenbrecher') station, the Tides of Avarice
-          (dlc_pirate) landmark built by the Riptide Rakers
-          (faction.scavenger, German 'Sturmflut-Streicher') to shelter from
-          the DLC's wave/tide phenomenon, and the wave cluster/celestial body
-          driving it. Found once below via the same godstationentry the DLC
-          itself uses to locate the station (md/setup_dlc_pirate.xml, cues
-          SetupTidebreakStation/TidebreakCondensate) - this mod never
-          creates or modifies either.
-      * $NotifySubscribed
-        - Toggled by TimeToNextWave_ToggleNotify_Callback via the
-          "Tide Warning: ON/OFF" interact menu action - a persistent
-          on/off setting (not a one-shot, per-ask arm), checked fresh by
-          TimeToNextWave_NotifyWarning/_NotifyWave every single time the
-          tide's phase actually changes, for as long as it stays set.
-    -->
+    <!-- Holding cue for $TidebreakStation/$WaveCluster/$WaveClusterCelestialBody (found once below)
+         and $NotifySubscribed, the persistent on/off flag toggled via the interact menu. -->
     <cue name="TimeToNextWave_Globals"/>
 
-    <!--
-      Finds the Tidebreak station and, for the subscribed follow-up
-      notifications below, the same wave cluster/celestial body
-      order_wait_wave already reuses (macro.cluster_500_macro,
-      class.celestialbody). Guarded to the main galaxy and delayed 1s,
-      mirroring md.Setup_DLC_Pirate.TheWaveSetup's own workaround comment for
-      events firing in a different order when loading an existing savegame.
-      required="false" throughout so this mod fails quietly (no menu action,
-      no notifications) rather than hard-erroring on a save/galaxy without
-      the Tides of Avarice DLC.
-    -->
+    <!-- Finds the Tidebreak station and wave cluster/celestial body. required="false" throughout
+         so this mod fails quietly (no menu action/notifications) without the Tides of Avarice DLC. -->
     <cue name="TimeToNextWave_Setup" mapeditor="false">
       <conditions>
         <event_universe_generated/>
@@ -48,23 +23,8 @@
         </do_if>
       </actions>
       <cues>
-        <!--
-          Follow-up heads-up when the tide's 'warning' phase starts - only
-          while TimeToNextWave_Globals.$NotifySubscribed is set (toggled on
-          via the "Tide Warning: ON/OFF" action, see
-          TimeToNextWave_AddAction_ToggleNotify below) and current
-          reputation is still 10+ (re-checked fresh here, not just at the
-          moment the player toggled it on, in case reputation has since
-          dropped). Unlike an earlier version of this mod, this is a
-          standing subscription, not consumed after firing - it keeps firing
-          every single 'calm' -> 'warning' transition for as long as both
-          conditions hold. Nested here (not a separate top-level cue) so its
-          event_object_phase_started condition only gets set up once
-          TimeToNextWave_Globals.$WaveClusterCelestialBody above is actually
-          populated - exactly how md.Setup_DLC_Pirate's own TheWaveHandler
-          nests TheWave_StagesProgression's phase-watching children under
-          itself for the same reason.
-        -->
+        <!-- Warning-phase heads-up, only while $NotifySubscribed and reputation 10+ (re-checked live).
+             Standing subscription - fires on every calm->warning transition. -->
         <cue name="TimeToNextWave_NotifyWarning" instantiate="true">
           <conditions>
             <event_object_phase_started object="TimeToNextWave_Globals.$WaveClusterCelestialBody" phase="'warning'"/>
@@ -80,12 +40,7 @@
           </actions>
         </cue>
 
-        <!--
-          Follow-up alert when the tide actually breaks - same subscription
-          flag as TimeToNextWave_NotifyWarning above, but additionally
-          requires reputation 20+ (re-checked fresh, same reasoning). No
-          countdown to give by then, just the fact that it's happening.
-        -->
+        <!-- Wave-start alert, same subscription flag but reputation 20+. No countdown, just the fact it's happening. -->
         <cue name="TimeToNextWave_NotifyWave" instantiate="true">
           <conditions>
             <event_object_phase_started object="TimeToNextWave_Globals.$WaveClusterCelestialBody" phase="'wave'"/>
@@ -101,33 +56,15 @@
       </cues>
     </cue>
 
-    <!--
-      Shared by TimeToNextWave_ComputeStatusSuffix and
-      TimeToNextWave_ComputeExactText below - both only ever show minutes,
-      not a precise mm:ss countdown, so this is the one place that rounds
-      $Remaining to the nearest whole minute (+30s then floor via the
-      duration/duration -> integer ()i cast, same cast used elsewhere in
-      this mod and in md/setup_dlc_pirate.xml itself). Only the rounding
-      itself lives here - the "N minutes"/"N Minuten" wording is inline in
-      each consumer's own text (ids 15/22), since there are only two of
-      them and each is already its own independent, individually
-      translatable sentence; centralising just the number avoids
-      duplicating the actual rounding formula without adding a text-only
-      indirection layer for a two-word phrase.
-      Input: $Remaining (duration). Output: $Minutes.
-    -->
+    <!-- Rounds $Remaining to the nearest whole minute, shared by both consumers below.
+         Input: $Remaining (duration). Output: $Minutes. -->
     <library name="TimeToNextWave_FormatMinutes">
       <actions>
         <set_value name="$Minutes" exact="(($Remaining + 30s) / 60s)i"/>
       </actions>
     </library>
 
-    <!--
-      Builds the bit appended to the status action's own label in
-      TimeToNextWave_AddAction below, so the interact menu itself shows a
-      live snapshot of the actual countdown instead of a static caption.
-      Output: $StatusSuffix.
-    -->
+    <!-- Builds the live countdown suffix shown in the interact menu's status label. Output: $StatusSuffix. -->
     <library name="TimeToNextWave_ComputeStatusSuffix">
       <actions>
         <do_if value="md.Setup_DLC_Pirate.TheWave.$WaveClusterCelestialBody.phase.current.id == 'wave'">
@@ -143,31 +80,15 @@
       </actions>
     </library>
 
-    <!--
-      Adds Tidebreak's own right-click "Time until next tide: ..." entry -
-      status only, no $callback, so clicking it does nothing (confirmed via
-      sn_mod_support_apis' own Interact_Menu_API.xml: its click handler only
-      ever signals "$action.$callback" after checking
-      "$action.$callback? and $action.$callback.exists", so simply omitting
-      $callback here is a safe, supported no-op rather than an error or a
-      dead reference). Gated entirely in <conditions> rather than an
-      <actions>-level do_if: the target must be exactly the Tidebreak
-      station found earlier (this mod doesn't need any ship selected, it's
-      informational, not an order or a question). $section = 'interaction'
-      (not 'order' like order_wait_wave/order_jump_anomaly use for ship
-      movement orders) since this isn't a movement/dock order -
-      sn_mod_support_apis' own Interact_Menu_API.xml doc comments list
-      'main' and 'interaction' as the two documented section names for this
-      kind of general right-click action (and note 'interaction' doesn't
-      support a separate $text2 column, per the same doc comments - hence
-      baking the countdown into $text itself instead).
-    -->
+    <!-- Adds Tidebreak's status-only right-click entry (no $callback = no-op on click), gated to
+         exactly the Tidebreak station. section='interaction' since it's informational, not an order. -->
     <cue name="TimeToNextWave_AddAction" instantiate="true">
       <conditions>
         <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
         <check_value value="TimeToNextWave_Globals.$TidebreakStation? and TimeToNextWave_Globals.$TidebreakStation.exists
                               and event.param.$object? and event.param.$object.exists
-                              and event.param.$object == TimeToNextWave_Globals.$TidebreakStation"/>
+                              and event.param.$object == TimeToNextWave_Globals.$TidebreakStation
+                              and faction.player.relation.{faction.scavenger.relationto.{faction.player}}.uivalue ge -10"/>
       </conditions>
       <actions>
         <include_actions ref="TimeToNextWave_ComputeStatusSuffix"/>
@@ -185,16 +106,8 @@
       </actions>
     </cue>
 
-    <!--
-      Adds Tidebreak's own "Tide Warning: ON/OFF" toggle - only once
-      reputation reaches 10 (below that there's nothing to subscribe to at
-      all, see TimeToNextWave_NotifyWarning/_NotifyWave above), labelled
-      with the current TimeToNextWave_Globals.$NotifySubscribed state so the
-      menu always shows whether it's currently on or off. Clicking it runs
-      TimeToNextWave_ToggleNotify_Callback, which just flips that flag -
-      the actual reputation/phase gating happens later, when the
-      subscribed-to phase change actually occurs (see above), not here.
-    -->
+    <!-- Adds the "Tide Warning: ON/OFF" toggle once reputation reaches 10. Clicking just flips
+         the flag; the actual gating happens later when the phase changes. -->
     <cue name="TimeToNextWave_AddAction_ToggleNotify" instantiate="true">
       <conditions>
         <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
@@ -237,19 +150,8 @@
       </actions>
     </cue>
 
-    <!--
-      Shared by TimeToNextWave_NotifyWarning - drops the rounded-to-minutes
-      $Minutes (TimeToNextWave_FormatMinutes) into the notice text. The
-      duration itself is read live from the DLC's own real engine phase
-      object and its own precomputed absolute end-time
-      (md.Setup_DLC_Pirate.TheWave.$WaveClusterCelestialBody.phase.current.id,
-      .$EndTime_WarningToWave_PhaseStart) - confirmed accessible cross-script
-      by story_thefan.xml itself, which reads the very same
-      md.Setup_DLC_Pirate.TheWave.$EndTime_... variables from outside
-      md.Setup_DLC_Pirate.TheWave's own cue tree. This mod never
-      reimplements or guesses at the wave's timing.
-      Input: $Remaining (duration). Output: $CountdownText.
-    -->
+    <!-- Drops the rounded $Minutes into the warning notice text, timing read live from the DLC's own phase data.
+         Input: $Remaining (duration). Output: $CountdownText. -->
     <library name="TimeToNextWave_ComputeExactText">
       <actions>
         <include_actions ref="TimeToNextWave_FormatMinutes"/>

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <content id="trade_with_all_player_owned_stations" name="Trade With All Player Owned Stations" description="Adds player-owned stations as optional partners for station traders outside jump range" author="mitternachtssurfer" version="1.2" date="2026-07-09" save="0">
-  <text language="49" name="Handel mit allen Spielerstationen" description="Fügt stationszugehörigen Händlern optional alle Spielerstationen als Kauf- oder Verkaufspartner hinzu, auch ausserhalb der Sprungreichweite" />
+  <text language="49" name="Handel mit allen Spielerstationen" description="Fügt stationszugehörigen Händlern alle Spielerstationen als Kauf- oder Verkaufspartner hinzu, auch ausserhalb der Sprungreichweite" />
 </content>

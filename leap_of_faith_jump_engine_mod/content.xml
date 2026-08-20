@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="leap_of_faith_jump_engine_mod" name="Leap of Faith Jump Engine Mod" description="After the Northriver Plot (Tides of Avarice), Boso Ta researches a 3-stage chain that stabilizes the anomaly between Avarice and Leap of Faith - starting with the unique Astrid, then a craftable engine mod, finally safe for every ship" author="mitternachtssurfer" version="4.0" date="2026-07-22" save="0">
-  <text language="49" name="Glaubenssprung-Sprungantriebsmod" description="Nach dem Northriver Plot (Gezeiten der Habgier) erforscht Boso Ta eine dreistufige Kette, die die Anomalie zwischen Habgier und Glaubenssprung stabilisiert - beginnend mit der einzigartigen Astrid, dann ein craftbarer Antriebsmod, zuletzt sicher für jedes Schiff" />
+<content id="leap_of_faith_jump_engine_mod" name="Leap of Faith Jump Engine Mod" description="After the Northriver Plot (Tides of Avarice), a new engine mod can be researched with Boso Ta's help, which permanently allows using the anomaly in Avarice V to Leap of Faith." author="mitternachtssurfer" version="4.0" date="2026-07-22" save="0">
+  <text language="49" name="Glaubenssprung-Sprungantriebsmod" description="Nach dem Northriver Plot (Gezeiten der Habgier) kann mit Hilfe von Boso Ta eine neue Antriebsmod erforscht werden, welche es erlaubt die Anomalie in Habgier V dauerhaft nach Glaubenssprung zu nutzen." />
   <dependency id="ego_dlc_pirate" version="100" optional="false" />
 </content>

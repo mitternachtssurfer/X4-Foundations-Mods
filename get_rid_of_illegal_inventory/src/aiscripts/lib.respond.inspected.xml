@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <diff>
-  <!-- Vanilla drop_illegal_cargo/drop_illegal_inventory spawn a physical, collectable crate right next to the
-       ship (distance ~0m). Any script that auto-collects nearby loot (e.g. "loot magnet" style mods, or the
-       player manually) can grab that crate again before the police re-check completes, so the ship still
-       counts as carrying contraband and gets flagged hostile despite having "complied". Replacing the drop
-       with remove_cargo/remove_inventory deletes the illegal wares outright instead of spawning anything
-       pickupable, so there is nothing left to re-collect. -->
+  <!-- Delete illegal wares outright instead of spawning a collectable crate, so loot magnets/the
+       player can't re-grab it before the police re-check completes. -->
   <replace sel="//do_if[@value=&quot;$response == 'comply'&quot;]/do_if[@value=&quot;$mode == 'policehalt'&quot;]">
     <do_if value="$mode == 'policehalt'">
       <set_value name="$speakline" exact="6009" comment="Releasing cargo now."/>

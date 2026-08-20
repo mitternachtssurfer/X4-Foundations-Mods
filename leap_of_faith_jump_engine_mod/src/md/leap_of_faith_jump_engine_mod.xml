@@ -2,9 +2,7 @@
 <mdscript name="LeapOfFaithJumpEngineMod" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
   <cues>
 
-    <!--
-      Init. Fires on every load (md.Setup.Start). Resolves the sectors/anomaly objects.
-    -->
+    <!-- Init. Fires on every load, resolves the sectors/anomaly objects. -->
     <cue name="LeapOfFaithJumpEngineMod_Init" mapeditor="false">
       <conditions>
         <event_cue_signalled cue="md.Setup.Start"/>
@@ -16,20 +14,10 @@
           <find_object name="$AnomalyAvarice" class="class.anomaly" space="$SectorAvarice" multiple="false" godobjectentry="'S2B_anomaly_01'" required="false"/>
           <find_object name="$AnomalyLeapOfFaith" class="class.anomaly" space="$SectorLeapOfFaith" multiple="false" godobjectentry="'S3_anomaly_01'" required="false"/>
         </do_if>
-        <!--
-          event_object_entered_anomaly needs an "object" or "group" attribute to watch (entry/exit
-          only filter which anomaly). $PlayerOwnedShips is a galaxy-wide group of player-owned
-          ships, refreshed periodically below - group membership can change after the event
-          condition is set up.
-        -->
+        <!-- $PlayerOwnedShips: galaxy-wide group the anomaly-entry events watch, refreshed periodically below. -->
         <create_group groupname="$PlayerOwnedShips"/>
         <find_ship groupname="$PlayerOwnedShips" owner="faction.player" space="player.galaxy" multiple="true"/>
-        <!--
-          Re-arm CollectJumpData/Correct_FromAvarice synchronously, right after $PlayerOwnedShips
-          exists - avoids a window where their event condition would still reference an invalid
-          group from script-load time. The checkinterval versions below handle the case where the
-          plot/research complete later in the same session.
-        -->
+        <!-- Re-arm now that $PlayerOwnedShips exists; the checkinterval cues below cover the plot/research completing later. -->
         <do_if value="LeapOfFaithJumpEngineMod_CollectJumpData.state != cuestate.complete">
           <reset_cue cue="LeapOfFaithJumpEngineMod_CollectJumpData"/>
         </do_if>
@@ -39,11 +27,7 @@
       </actions>
 
       <cues>
-        <!--
-          Keeps $PlayerOwnedShips in sync with newly bought/built or lost/sold ships. Runs forever
-          - needed by CollectJumpData during the counting phase, then by Correct_FromAvarice for
-          the rest of the game.
-        -->
+        <!-- Keeps $PlayerOwnedShips in sync with bought/built/lost/sold ships. Runs forever. -->
         <cue name="LeapOfFaithJumpEngineMod_RefreshPlayerShips" checkinterval="5s">
           <conditions>
             <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
@@ -58,29 +42,14 @@
           </actions>
         </cue>
 
-        <!--
-          Boso Ta's jump-data storyline: counts jumps by any player-owned ship from Avarice to 
-          Leap of Faith, only once the Northriver Plot is done.
-          Ch10_Epilogue is used instead of Ch10_Finished, which can show state cancelled even on a
-          completed playthrough - mirrors Egosoft's own equivalent check in story_thefan.xml.
-
-          - 1st qualifying jump: Boso Ta notices a pattern (message 200/201).
-          - 5th qualifying jump: Boso Ta has enough data, sends message 210/211 and reveals the
-            research. Adjust the "ge 5" below to taste.
-
-          $JumpCount is a local variable that persists across reset_cue (vanilla pattern, e.g.
-          lib_dialog.xml's "$CurrentActor operation=add" + reset_cue cue="this").
-        -->
+        <!-- Boso Ta's jump-data storyline: counts qualifying Avarice->Leap of Faith jumps after the Northriver Plot.
+             1st jump notices a pattern; 5th unlocks the research (adjust "ge 5" to taste). -->
         <cue name="LeapOfFaithJumpEngineMod_CollectJumpData_Init" mapeditor="false" checkinterval="5s">
           <conditions>
             <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
           </conditions>
           <actions>
-            <!--
-              Re-arms CollectJumpData now that $PlayerOwnedShips exists. Skipped if already
-              complete, to avoid re-triggering the reveal message/encyclopedia entry on a save
-              where the threshold was already reached.
-            -->
+            <!-- Re-arms CollectJumpData; skipped if already complete to avoid re-triggering the reveal message. -->
             <do_if value="LeapOfFaithJumpEngineMod_CollectJumpData.state != cuestate.complete">
               <reset_cue cue="LeapOfFaithJumpEngineMod_CollectJumpData"/>
             </do_if>
@@ -109,15 +78,8 @@
           </cues>
         </cue>
 
-        <!--
-          Gameplay payoff: once the research is unlocked, a ship fitted with
-          mod_engine_leap_of_faith_jump always reaches Leap of Faith, regardless of event.param2.
-          We don't touch add_anomaly_destination: vanilla already guarantees Leap of Faith during
-          the wave (only destination added then, so the "random" pick is trivial) and blocks it
-          outside the wave (empty destinations, anomaly's own chaos fallback). Adding our own
-          would leak it in as an option for every ship, not just modded ones. Correction is scoped
-          to $PlayerOwnedShips since the mod is only obtainable by crafting.
-        -->
+        <!-- Once unlocked, ships fitted with the mod always reach Leap of Faith. Corrects the destination
+             after the fact instead of touching add_anomaly_destination, to avoid leaking it to unmodded ships. -->
         <cue name="LeapOfFaithJumpEngineMod_JumpCorrection_Init" checkinterval="20s">
           <conditions>
             <check_value value="LeapOfFaithJumpEngineMod_Init.state == cuestate.complete"/>
@@ -137,10 +99,7 @@
                   <match_engine_mod ware="ware.mod_engine_leap_of_faith_jump"/>
                 </check_object>
                 <do_if value="$HasJumpMod and event.param2 != $AnomalyLeapOfFaith">
-                  <!--
-                    Safe-warp distance scaled by ship size class - a bigger ship needs more
-                    clearance to avoid overlapping the anomaly or anything docked/nearby.
-                  -->
+                  <!-- Safe-warp distance scaled by ship size - bigger ships need more clearance near the anomaly. -->
                   <do_if value="event.object.class == class.ship_xs">
                     <set_value name="$CorrectMin" exact="20m"/>
                     <set_value name="$CorrectMax" exact="50m"/>
@@ -158,7 +117,7 @@
                     <set_value name="$CorrectMax" exact="3km"/>
                   </do_elseif>
                   <do_else comment="ship_xl or anything unexpected">
-                    <set_value name="$CorrectMin" exact="2km"/>m
+                    <set_value name="$CorrectMin" exact="2km"/>
                     <set_value name="$CorrectMax" exact="5km"/>
                   </do_else>
                   <warp object="event.object" sector="$SectorLeapOfFaith">

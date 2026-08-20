@@ -1,53 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aiscript name="order.jump.anomaly" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="aiscripts.xsd" version="1">
-  <!--
-    Custom order for "fly to an anomaly and jump through it". Queued directly
-    (just this one order, nothing else) by src/md/order_jump_anomaly.xml
-    (OrderJumpAnomaly_SendShip).
-
-    Structured after Egosoft's own DockAndWait (aiscripts/order.dock.wait.xml):
-    that order also shows as two order-list entries ("Dock"/"Dock and Wait")
-    because it checks its own precondition (docked at the right destination?)
-    every time it (re)starts, and if unmet, creates an immediate "DockAt"
-    sub-order to fix that before proceeding - rather than trusting that a
-    separate, once-only "get there" order already handled it. This matters
-    because an order that gets interrupted (eg. a manually inserted order
-    runs while this one is paused waiting to resume) *restarts from the top
-    of its own script* once it becomes current again - it does not resume
-    mid-flow. An earlier version of this order relied on a separate, once-only
-    MoveToObject queued before it in MD, and would still fire
-    perform_gate_transition after its wait even if a manually inserted order
-    in between had since flown the ship somewhere else entirely - because it
-    only checked its position once, whereas DockAndWait re-validates (and
-    re-navigates if needed) on every single (re)start. This order copies that
-    pattern.
-  -->
-  <!--
-    Known limitation: this order cannot be used in a player-created repeat
-    order loop. It never gets the loop numbering/count in the order list at
-    all (unlike DockAndWait/MoveToObject), immediately on adding it - before
-    it ever runs. menu_interactmenu.lua checks a native, compiled engine
-    function (C.IsOrderLoopable(orderdefid)) to decide this per order id, and
-    its internal logic isn't inspectable from any exported script/schema
-    file. Tried and confirmed NOT to fix it: explicit allowinloop="true" on
-    this <order> (schema default is already true when omitted), explicitly
-    finishing via cancel_order keepinloop="true" instead of a natural script
-    end, and adding the full standard interrupt handler set (kept below
-    regardless, since those are a genuine correctness improvement on their
-    own - see that comment). Outside of a loop, the order works normally.
-  -->
+  <!-- Custom order: fly to an anomaly and jump through it. Queued by src/md/order_jump_anomaly.xml,
+       re-checks its own position on every (re)start, same pattern as Egosoft's own DockAndWait. -->
+  <!-- Known limitation: cannot be used in a player repeat-order loop (engine decides loopability
+       internally, not fixable from script/schema). Works normally outside a loop. -->
   <order id="JumpAnomaly" name="{9000002, 20}" description="{9000002, 21}" category="navigation">
     <params>
       <param name="anomaly" type="object" text="{9000002, 22}" comment="Anomaly to transition through">
         <input_param name="class" value="[class.anomaly]"/>
       </param>
-      <!--
-        How close to the anomaly counts as arrived - checked in three places
-        below, kept as one param instead of a repeated literal. Scaled by
-        ship size (xs 500m, s 1km, m 2km, l 3km, xl/anything else 4km) since a
-        bigger ship needs more clearance - same size-class scaling idea as
-        leap_of_faith_jump_engine_mod's Lib_CorrectShipToDestination.
-      -->
+      <!-- How close counts as arrived, scaled by ship size (xs 500m up to xl 4km). -->
       <param name="arrivaldistance" type="internal" default="if this.ship.class == class.ship_xs then 500m else if this.ship.class == class.ship_s then 1km else if this.ship.class == class.ship_m then 2km else if this.ship.class == class.ship_l then 3km else 4km" comment="How close to the anomaly counts as arrived, scaled by ship size"/>
     </params>
     <requires>
@@ -55,34 +17,13 @@
       <match class="class.spacesuit" negate="true"/>
     </requires>
     <location object="$anomaly" condition="$anomaly.exists"/>
-    <!--
-      Without an explicit override, the map/order-list icon for a custom
-      order id is looked up by a "order_" + lowercase(id) naming convention
-      (eg. id="MoveToObject" -> icon "order_movetoobject", confirmed in
-      libraries/icons.xml) - there is no "order_jumpanomaly" icon asset, so
-      it fell back to a "?" placeholder. No dedicated jump/anomaly/gate order
-      icon exists in vanilla either (checked icons.xml), so this reuses
-      order_movetoobject - the same icon already used for the interact menu
-      entry in src/md/order_jump_anomaly.xml.
-    -->
+    <!-- No dedicated jump/anomaly order icon exists, so this reuses order_movetoobject
+         (same one used for the interact menu entry in order_jump_anomaly.xml). -->
     <icon name="order_movetoobject"/>
   </order>
 
-  <!--
-    Full standard interrupt handler set, matching both Egosoft's own orders
-    (eg. order.move.wait.object.xml) and GS QoL: Jump and Wait
-    (gs_qol_jump_and_wait's order.gs_qol_jump_and_wait.jumpwait, a similar
-    "jump through a gate, then wait" custom order) - we had none of these
-    before. Added while chasing the loop limitation above (it didn't fix
-    that), but kept regardless: this order was missing standard handling for
-    being attacked, scanned, inspected, finding an abandoned ship/lockbox
-    mid-flight, resupply needs and tide effects, same as any other real
-    order. In particular SectorChangeHandler reacts to this.ship entering an
-    anomaly/gate (which our own perform_gate_transition call triggers) with
-    "abort_called_scripts resume='start'" - see the $hasjumped guard at the
-    "start" label below for why that needs handling, rather than just adding
-    the handler and hoping.
-  -->
+  <!-- Standard interrupt handler set (attack/scan/inspect/tide/etc.), matching Egosoft's own orders.
+       SectorChangeHandler resumes at "start" after our own jump - see the $hasjumped guard below. -->
   <interrupts>
     <handler ref="SectorChangeHandler"/>
     <handler ref="TargetInvalidHandler"/>
@@ -100,17 +41,8 @@
     <actions>
       <label name="start"/>
 
-      <!--
-        SectorChangeHandler resumes here after perform_gate_transition below
-        triggers event_object_entered_anomaly for our own jump (this.ship
-        entering $anomaly counts, same as any other anomaly/gate entry) -
-        without this guard, restarting from "start" would see the ship now
-        in a different sector than $anomaly (the source-side anomaly) and
-        wrongly re-trigger the "not near, fly there" branch, sending the ship
-        all the way back. $hasjumped is a local script variable, expected to
-        survive this resume (it is a resume within the same running script,
-        not a fresh restart like the create_order-immediate case above/below).
-      -->
+      <!-- Guards against SectorChangeHandler re-triggering the "fly there" branch after our
+           own jump already moved the ship out of $anomaly's sector. -->
       <do_if value="@$hasjumped">
         <!-- Nothing left to do - already jumped in a previous pass through this script. Chance=0: enable manually if this needs re-diagnosing. -->
         <debug_text text="'JumpAnomaly: already jumped, finishing.'" chance="0"/>
@@ -119,11 +51,7 @@
         <debug_text text="'JumpAnomaly: no valid anomaly parameter, aborting.'" filter="error"/>
       </do_elseif>
       <do_else>
-        <!--
-          "Am I already there?" - re-checked every time this order (re)starts,
-          not just once. 5km mirrors the beacon search radius on the MD side
-          (OrderJumpAnomaly_Globals.$BeaconSearchRadius).
-        -->
+        <!-- Re-checked every (re)start, not just once. 5km mirrors the MD-side beacon search radius. -->
         <do_if value="not (this.ship.sector == $anomaly.sector and this.ship.relativeposition.{$anomaly}.length le $arrivaldistance)">
           <create_order object="this.ship" id="'MoveToObject'" immediate="true" comment="Not (or no longer) near the anomaly - fly there first, same as DockAndWait's own DockAt sub-order">
             <param name="destination" value="$anomaly"/>
@@ -133,14 +61,7 @@
         </do_if>
 
         <do_if value="this.ship.exists and $anomaly.exists and this.ship.sector == $anomaly.sector and this.ship.relativeposition.{$anomaly}.length le $arrivaldistance">
-          <!--
-            Min = 6 - (skill/3): using stars (skill/3, 0-5), not the raw 0-15
-            skill value - 1s at 5 stars (skill 15) up to 6s at 0 stars
-            (skill 0). Max = 3x Min, so the spread widens for a worse pilot
-            too (1-3s at 5 stars, 6-18s at 0 stars). A ship with no assigned
-            pilot (eg. the player's own occupied ship) is treated as
-            worst-case (skill 0), since there's no crew skill to rely on.
-          -->
+          <!-- Wait scaled by pilot skill (stars): 1-3s at max skill up to 6-18s at min/no pilot. -->
           <set_value name="$pilotskill" exact="if this.ship.pilot.exists then this.ship.pilot.skill.piloting else 0"/>
           <set_value name="$delaymin" exact="6 - ($pilotskill / 3)"/>
           <set_value name="$delaymax" exact="3 * $delaymin"/>

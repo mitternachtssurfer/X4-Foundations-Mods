@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <diff>
-  <!-- basket_wpsmod_rare_03: T3 mod parts (enginefuelinjector/shieldgeneratorcoil/shipnanoweave/weaponchamber
-       *_t3). These wares already exist in the base game (mission rewards) but have no loot-table entry. No 
-       dedicated sm_gen_wpsmod_rare_03_macro asset exists, so the tier 2 container model is reused for the 
-       visual pickup (the modpart wares themselves reference sm_gen_wpsmod_rare_01_macro as their own 
-       container, so the model is purely cosmetic and independent of the wares it can contain). -->
+  <!-- basket_wpsmod_rare_03: T3 mod parts, previously only obtainable as mission rewards. Reuses the tier 2
+       container model since no dedicated tier 3 asset exists. -->
   <add sel="/droplists/wares[@id='basket_wpsmod_rare_02']" pos="after">
     <wares id="basket_wpsmod_rare_03" selection="random">
       <select weight="1">
