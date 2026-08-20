@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="TimeToNextWave" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+
+    <!-- Holding cue for $TidebreakStation/$WaveCluster/$WaveClusterCelestialBody (found once below)
+         and $NotifySubscribed, the persistent on/off flag toggled via the interact menu. -->
+    <cue name="TimeToNextWave_Globals"/>
+
+    <!-- Finds the Tidebreak station and wave cluster/celestial body. required="false" throughout
+         so this mod fails quietly (no menu action/notifications) without the Tides of Avarice DLC. -->
+    <cue name="TimeToNextWave_Setup" mapeditor="false">
+      <conditions>
+        <event_universe_generated/>
+      </conditions>
+      <delay exact="1s"/>
+      <actions>
+        <do_if value="player.galaxy.macro == macro.xu_ep2_universe_macro">
+          <find_station_by_true_owner name="TimeToNextWave_Globals.$TidebreakStation" faction="faction.civilian" space="player.galaxy" godstationentry="'pirate_landmark_01'" required="false"/>
+          <find_cluster name="TimeToNextWave_Globals.$WaveCluster" macro="macro.cluster_500_macro" required="false"/>
+          <do_if value="TimeToNextWave_Globals.$WaveCluster? and TimeToNextWave_Globals.$WaveCluster.exists">
+            <find_object_component name="TimeToNextWave_Globals.$WaveClusterCelestialBody" object="TimeToNextWave_Globals.$WaveCluster" class="class.celestialbody"/>
+          </do_if>
+        </do_if>
+      </actions>
+      <cues>
+        <!-- Warning-phase heads-up, only while $NotifySubscribed and reputation 10+ (re-checked live).
+             Standing subscription - fires on every calm->warning transition. -->
+        <cue name="TimeToNextWave_NotifyWarning" instantiate="true">
+          <conditions>
+            <event_object_phase_started object="TimeToNextWave_Globals.$WaveClusterCelestialBody" phase="'warning'"/>
+          </conditions>
+          <actions>
+            <do_if value="TimeToNextWave_Globals.$NotifySubscribed?
+                           and TimeToNextWave_Globals.$TidebreakStation? and TimeToNextWave_Globals.$TidebreakStation.exists
+                           and faction.player.relation.{faction.scavenger.relationto.{faction.player}}.uivalue ge 10">
+              <set_value name="$Remaining" exact="[md.Setup_DLC_Pirate.TheWave.$EndTime_WarningToWave_PhaseStart - player.age, 0s].max"/>
+              <include_actions ref="TimeToNextWave_ComputeExactText"/>
+              <write_incoming_message title="{9000004, 13}" text="$CountdownText" source="TimeToNextWave_Globals.$TidebreakStation.knownname" highpriority="true" comment="Tidebreak subscribed warning-phase notice"/>
+            </do_if>
+          </actions>
+        </cue>
+
+        <!-- Wave-start alert, same subscription flag but reputation 20+. No countdown, just the fact it's happening. -->
+        <cue name="TimeToNextWave_NotifyWave" instantiate="true">
+          <conditions>
+            <event_object_phase_started object="TimeToNextWave_Globals.$WaveClusterCelestialBody" phase="'wave'"/>
+          </conditions>
+          <actions>
+            <do_if value="TimeToNextWave_Globals.$NotifySubscribed?
+                           and TimeToNextWave_Globals.$TidebreakStation? and TimeToNextWave_Globals.$TidebreakStation.exists
+                           and faction.player.relation.{faction.scavenger.relationto.{faction.player}}.uivalue ge 20">
+              <write_incoming_message title="{9000004, 14}" text="{9000004, 32}" source="TimeToNextWave_Globals.$TidebreakStation.knownname" highpriority="true" comment="Tidebreak subscribed wave-start notice"/>
+            </do_if>
+          </actions>
+        </cue>
+      </cues>
+    </cue>
+
+    <!-- Rounds $Remaining to the nearest whole minute, shared by both consumers below.
+         Input: $Remaining (duration). Output: $Minutes. -->
+    <library name="TimeToNextWave_FormatMinutes">
+      <actions>
+        <set_value name="$Minutes" exact="(($Remaining + 30s) / 60s)i"/>
+      </actions>
+    </library>
+
+    <!-- Builds the live countdown suffix shown in the interact menu's status label. Output: $StatusSuffix. -->
+    <library name="TimeToNextWave_ComputeStatusSuffix">
+      <actions>
+        <do_if value="md.Setup_DLC_Pirate.TheWave.$WaveClusterCelestialBody.phase.current.id == 'wave'">
+          <set_value name="$StatusSuffix" exact="{9000004, 16}"/>
+        </do_if>
+        <do_else>
+          <set_value name="$Remaining" exact="[md.Setup_DLC_Pirate.TheWave.$EndTime_WarningToWave_PhaseStart - player.age, 0s].max"/>
+          <include_actions ref="TimeToNextWave_FormatMinutes"/>
+          <substitute_text text="$StatusSuffix" source="{9000004, 15}">
+            <replace string="'$TIME$'" with="$Minutes"/>
+          </substitute_text>
+        </do_else>
+      </actions>
+    </library>
+
+    <!-- Adds Tidebreak's status-only right-click entry (no $callback = no-op on click), gated to
+         exactly the Tidebreak station. section='interaction' since it's informational, not an order. -->
+    <cue name="TimeToNextWave_AddAction" instantiate="true">
+      <conditions>
+        <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
+        <check_value value="TimeToNextWave_Globals.$TidebreakStation? and TimeToNextWave_Globals.$TidebreakStation.exists
+                              and event.param.$object? and event.param.$object.exists
+                              and event.param.$object == TimeToNextWave_Globals.$TidebreakStation
+                              and faction.player.relation.{faction.scavenger.relationto.{faction.player}}.uivalue ge -10"/>
+      </conditions>
+      <actions>
+        <include_actions ref="TimeToNextWave_ComputeStatusSuffix"/>
+        <substitute_text text="$MenuText" source="{9000004, 10}">
+          <replace string="'$STATUS$'" with="$StatusSuffix"/>
+        </substitute_text>
+        <signal_cue_instantly
+          cue="md.Interact_Menu_API.Add_Action"
+          param="table[
+            $id         = 'time_to_next_wave_status',
+            $section    = 'interaction',
+            $text       = $MenuText,
+            $mouseover  = {9000004, 11},
+            ]"/>
+      </actions>
+    </cue>
+
+    <!-- Adds the "Tide Warning: ON/OFF" toggle once reputation reaches 10. Clicking just flips
+         the flag; the actual gating happens later when the phase changes. -->
+    <cue name="TimeToNextWave_AddAction_ToggleNotify" instantiate="true">
+      <conditions>
+        <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
+        <check_value value="TimeToNextWave_Globals.$TidebreakStation? and TimeToNextWave_Globals.$TidebreakStation.exists
+                              and event.param.$object? and event.param.$object.exists
+                              and event.param.$object == TimeToNextWave_Globals.$TidebreakStation
+                              and faction.player.relation.{faction.scavenger.relationto.{faction.player}}.uivalue ge 10"/>
+      </conditions>
+      <actions>
+        <do_if value="TimeToNextWave_Globals.$NotifySubscribed?">
+          <set_value name="$ToggleText" exact="{9000004, 40}"/>
+        </do_if>
+        <do_else>
+          <set_value name="$ToggleText" exact="{9000004, 41}"/>
+        </do_else>
+        <signal_cue_instantly
+          cue="md.Interact_Menu_API.Add_Action"
+          param="table[
+            $id         = 'time_to_next_wave_togglenotify',
+            $section    = 'interaction',
+            $text       = $ToggleText,
+            $mouseover  = {9000004, 42},
+            $callback   = TimeToNextWave_ToggleNotify_Callback,
+            ]"/>
+      </actions>
+    </cue>
+
+    <!-- Flips TimeToNextWave_Globals.$NotifySubscribed. See TimeToNextWave_AddAction_ToggleNotify above for what that flag gates. -->
+    <cue name="TimeToNextWave_ToggleNotify_Callback" instantiate="true">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+        <do_if value="TimeToNextWave_Globals.$NotifySubscribed?">
+          <remove_value name="TimeToNextWave_Globals.$NotifySubscribed"/>
+        </do_if>
+        <do_else>
+          <set_value name="TimeToNextWave_Globals.$NotifySubscribed" exact="true"/>
+        </do_else>
+      </actions>
+    </cue>
+
+    <!-- Drops the rounded $Minutes into the warning notice text, timing read live from the DLC's own phase data.
+         Input: $Remaining (duration). Output: $CountdownText. -->
+    <library name="TimeToNextWave_ComputeExactText">
+      <actions>
+        <include_actions ref="TimeToNextWave_FormatMinutes"/>
+        <substitute_text text="$CountdownText" source="{9000004, 22}">
+          <replace string="'$TIME$'" with="$Minutes"/>
+        </substitute_text>
+      </actions>
+    </library>
+
+  </cues>
+</mdscript>

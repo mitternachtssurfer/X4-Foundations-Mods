@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="9000004" title="Time to Next Wave - Custom Texts" descr="Custom interact menu and message texts added by the Time to Next Wave mod" voice="no">
+    <!-- Status-only interact menu entry shown when right-clicking the Tidebreak station - no click function. $STATUS$ is filled in live from ids 15/16 so the menu itself shows the current countdown; always non-empty (never a bare, dangling ":" since $STATUS$ is never blank). -->
+    <t id="10">Time until next tide: $STATUS$</t>
+    <t id="11">A live estimate from Tidebreak's flight control of when the next tide is due.</t>
+    <!-- Live status suffix appended to id 10 in the menu itself. $TIME$ is the plain rounded-to-minutes number (TimeToNextWave_FormatMinutes). -->
+    <t id="15">$TIME$ minutes</t>
+    <t id="16">now!</t>
+    <!-- Message title (subscribed warning-phase notice, reputation 10+) -->
+    <t id="13">Tide Warning</t>
+    <!-- Message title (subscribed wave-start notice, reputation 20+) -->
+    <t id="14">Tide Alert</t>
+    <!-- Remaining time, rounded to the nearest minute - used for the subscribed warning-phase notice -->
+    <t id="22">The tide will break in $TIME$ minutes.</t>
+    <!-- Subscribed wave-start notice (reputation 20+) -->
+    <t id="32">Brace yourselves - the tide is breaking in now.</t>
+    <!-- Toggle interact menu entry (reputation 10+ only), shown with its current on/off state -->
+    <t id="40">Tide Warning: ON</t>
+    <t id="41">Tide Warning: OFF</t>
+    <t id="42">Sign up for a notification if you want to receive a tide warning.</t>
+  </page>
+</language>
