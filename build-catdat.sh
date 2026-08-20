@@ -35,6 +35,11 @@ while getopts "m:o:s:ch" opt; do
     esac
 done
 
+if ! command -v x4cat >/dev/null 2>&1; then
+    echo "x4cat not found in PATH. Install with: uv tool install git+https://github.com/meethune/x4cat.git" >&2
+    exit 1
+fi
+
 if [ -z "$MOD_DIR" ]; then
     candidates=()
     while IFS= read -r -d '' dir; do
@@ -63,11 +68,6 @@ fi
 
 if [ -z "$SRC_PATH" ]; then
     SRC_PATH="$MOD_DIR/src"
-fi
-
-if ! command -v x4cat >/dev/null 2>&1; then
-    echo "x4cat not found in PATH. Install with: uv tool install git+https://github.com/meethune/x4cat.git" >&2
-    exit 1
 fi
 
 if [ ! -d "$MOD_DIR" ]; then
