@@ -6,6 +6,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+X4CAT_DIR="$SCRIPT_DIR/tools/x4cat"
+MODS_DIR="$SCRIPT_DIR/mods"
 
 MOD_DIR=""
 OUT_CAT="ext_01.cat"
@@ -16,7 +18,7 @@ usage() {
     cat <<EOF
 Usage: $(basename "$0") [-m MOD_DIR] [-o OUT_CAT] [-s SRC_PATH] [-c] [-h]
 
-  -m MOD_DIR   Mod directory (default: interactive selection from subfolders of this script's directory)
+  -m MOD_DIR   Mod directory (default: interactive selection from subfolders of mods/)
   -o OUT_CAT   Output .cat filename (default: $OUT_CAT)
   -s SRC_PATH  Source directory (default: MOD_DIR/src)
   -c           Remove existing .cat/.dat before building
@@ -35,19 +37,26 @@ while getopts "m:o:s:ch" opt; do
     esac
 done
 
-if ! command -v x4cat >/dev/null 2>&1; then
-    echo "x4cat not found in PATH. Install with: uv tool install git+https://github.com/meethune/x4cat.git" >&2
+if [ ! -d "$X4CAT_DIR/x4_catalog" ]; then
+    echo "x4cat not found at '$X4CAT_DIR'. Fetch the submodule with: git submodule update --init tools/x4cat" >&2
     exit 1
 fi
+export PYTHONPATH="$X4CAT_DIR${PYTHONPATH:+:$PYTHONPATH}"
+x4cat() { python3 -m x4_catalog "$@"; }
 
 if [ -z "$MOD_DIR" ]; then
+    if [ ! -d "$MODS_DIR" ]; then
+        echo "Mods directory not found: $MODS_DIR. Please specify -m MOD_DIR." >&2
+        exit 1
+    fi
+
     candidates=()
     while IFS= read -r -d '' dir; do
         candidates+=("$dir")
-    done < <(find "$SCRIPT_DIR" -mindepth 1 -maxdepth 1 -type d -not -name '.git' -print0 | sort -z)
+    done < <(find "$MODS_DIR" -mindepth 1 -maxdepth 1 -type d -print0 | sort -z)
 
     if [ "${#candidates[@]}" -eq 0 ]; then
-        echo "No subfolders under '$SCRIPT_DIR' found. Please specify -m MOD_DIR." >&2
+        echo "No subfolders under '$MODS_DIR' found. Please specify -m MOD_DIR." >&2
         exit 1
     fi
 
