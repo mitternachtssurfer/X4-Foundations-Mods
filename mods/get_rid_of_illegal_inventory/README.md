@@ -1,0 +1,5 @@
+# Get Rid of Illegal Inventory
+
+**EN:** When a ship complies with a police inspection, its illegal cargo and personal inventory are now actually deleted instead of being dropped as a collectable crate. Prevents "loot magnet" style mods (or the player) from re-collecting the illegal wares within seconds, which otherwise leaves the ship still carrying contraband and gets it wrongly flagged hostile by the police.
+
+**DE:** Wenn ein Schiff bei einer Polizeikontrolle kooperiert, wird seine illegale Fracht und sein persönliches Inventar jetzt tatsächlich gelöscht statt als aufsammelbare Kiste ausgeworfen zu werden. Verhindert, dass "Loot-Magnet"-Mods (oder der Spieler) die illegale Ware innerhalb von Sekunden wieder einsammeln, wodurch das Schiff weiterhin als im Besitz von Schmuggelware gilt und fälschlicherweise von der Polizei als feindlich eingestuft wird.
