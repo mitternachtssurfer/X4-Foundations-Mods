@@ -275,24 +275,24 @@
     <!-- Message title (subscribed wave-start notice, reputation 20+) -->
     <t id="14">Tide Alert</t>
     <!-- Remaining time, rounded to the nearest minute - used for the subscribed warning-phase notice -->
-    <t id="22">Tidebreak Flight Control: "The next tide is due in $TIME$ minutes."</t>
+    <t id="22">The tide will break in $TIME$ minutes.</t>
     <!-- Subscribed wave-start notice (reputation 20+) -->
-    <t id="32">Tidebreak Flight Control: "Brace yourselves - the tide is breaking now, right on schedule."</t>
+    <t id="32">Brace yourselves - the tide is breaking in now.</t>
     <!-- Toggle interact menu entry (reputation 10+ only), shown with its current on/off state -->
     <t id="40">Tide Warning: ON</t>
     <t id="41">Tide Warning: OFF</t>
-    <t id="42">Subscribe to a message when the tide's warning phase starts. Once your reputation reaches +20, this also covers an alert the moment the tide actually breaks.</t>
+    <t id="42">Sign up for a notification if you want to receive a tide warning.</t>
   </page>
 </language>
 <?xml version="1.0" encoding="utf-8"?>
 <language id="49">
-  <page id="9000004" title="Zeit bis zur naechsten Welle - Eigene Texte" descr="Eigene Rechtsklickmenue- und Nachrichtentexte des Mods 'Time to Next Wave'" voice="no">
+  <page id="9000004" title="Zeit bis zur nächsten Welle - Eigene Texte" descr="Eigene Rechtsklickmenü- und Nachrichtentexte des Mods 'Time to Next Wave'" voice="no">
     <!-- Reiner Status-Eintrag im Rechtsklickmenue der Wellenbrecher-Station - keine Funktion per Klick. $STATUS$ wird live aus id 15/16 gefuellt, sodass das Menue selbst den aktuellen Countdown zeigt; immer gefuellt (nie ein nackter, baumelnder ":" da $STATUS$ nie leer ist). -->
-    <t id="10">Zeit bis zur naechsten Flut:$STATUS$</t>
-    <t id="11">Schaetzung der Flugkontrolle von Wellenbrecher, wann die naechste Flut eintrifft.</t>
+    <t id="10">Nächste Flut in: $STATUS$</t>
+    <t id="11">Schätzung der Flugkontrolle von Wellenbrecher, wann die nächste Flut eintrifft.</t>
     <!-- Live-Statuszusatz, der id 10 im Menue selbst angehaengt wird. $TIME$ ist die reine, auf Minuten gerundete Zahl (TimeToNextWave_FormatMinutes). -->
-    <t id="15"> $TIME$ Minuten</t>
-    <t id="16"> jetzt!</t>
+    <t id="15">$TIME$ Minuten</t>
+    <t id="16">jetzt!</t>
     <!-- Message title (Hinweis bei Phase 'Warning', Ansehen ab 10) -->
     <t id="13">Flutwarnung</t>
     <!-- Message title (Hinweis bei Beginn der Welle, Ansehen ab 20) -->
@@ -304,6 +304,6 @@
     <!-- Umschalt-Eintrag im Menue (nur ab Ansehen 10), zeigt den aktuellen Ein/Aus-Status -->
     <t id="40">Flutwarnung: AKTIV</t>
     <t id="41">Flutwarnung: INAKTIV</t>
-    <t id="42">Meldet euch fuer eine Nachricht an, wenn die Warnphase der Flut beginnt. Ab +20 Ansehen deckt das auch einen Alarm beim tatsaechlichen Einsetzen der Flut ab.</t>
+    <t id="42">Meldet euch für eine Benachrichtigung an, wenn ihr eine Flutwarnung erhalten wollt.</t>
   </page>
 </language>

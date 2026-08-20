@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <diff>
-  <!-- Add wpsmod_rare_02 drops when wpsmod_rare_01 -->
+  <!-- basket_wpsmod_rare_03: T3 mod parts (enginefuelinjector/shieldgeneratorcoil/shipnanoweave/weaponchamber
+       *_t3). These wares already exist in the base game (mission rewards) but have no loot-table entry. No 
+       dedicated sm_gen_wpsmod_rare_03_macro asset exists, so the tier 2 container model is reused for the 
+       visual pickup (the modpart wares themselves reference sm_gen_wpsmod_rare_01_macro as their own 
+       container, so the model is purely cosmetic and independent of the wares it can contain). -->
+  <add sel="/droplists/wares[@id='basket_wpsmod_rare_02']" pos="after">
+    <wares id="basket_wpsmod_rare_03" selection="random">
+      <select weight="1">
+        <ware ware="modpart_enginefuelinjector_t3" min="1" max="2"/>
+      </select>
+      <select weight="1">
+        <ware ware="modpart_shieldgeneratorcoil_t3" min="1" max="2"/>
+      </select>
+      <select weight="1">
+        <ware ware="modpart_shipnanoweave_t3" min="1" max="2"/>
+      </select>
+      <select weight="1">
+        <ware ware="modpart_weaponchamber_t3" min="1" max="2"/>
+      </select>
+    </wares>
+  </add>
+
+  <!-- Add wpsmod_rare_03 drops wherever wpsmod_rare_02 -->
+  <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_02_macro'][@chance='10'] and not(drop[collectable/wares/@ref='basket_wpsmod_rare_03'])]">
+    <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="1">
+      <collectable>
+        <wares ref="basket_wpsmod_rare_03"/>
+      </collectable>
+    </drop>
+  </add>
+
+  <!-- Add wpsmod_rare_02 drops wherever wpsmod_rare_01 -->
   <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_rare_01_macro'][@chance='10'] and not(drop[@macro='sm_gen_wpsmod_rare_02_macro'])]">
     <drop macro="sm_gen_wpsmod_rare_02_macro" min="1" max="1" chance="1">
       <collectable>
@@ -37,7 +68,7 @@
     </drop>
   </add>
 
-  <!-- Add wpsmod_rare_01 drops when wpsmod_common_01 -->
+  <!-- Add wpsmod_rare_01 drops wherever wpsmod_common_01 -->
   <add sel="/droplists/droplist[drop[@macro='sm_gen_wpsmod_common_01_macro'][@chance='25'] and not(drop[@macro='sm_gen_wpsmod_rare_01_macro'])]">
     <drop macro="sm_gen_wpsmod_rare_01_macro" min="1" max="1" chance="11">
       <collectable>

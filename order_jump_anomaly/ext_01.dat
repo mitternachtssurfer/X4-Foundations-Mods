@@ -282,7 +282,7 @@
 </language>
 <?xml version="1.0" encoding="utf-8"?>
 <language id="49">
-  <page id="9000002" title="Anomalie-Sprungbefehl - Eigene Texte" descr="Eigene Rechtsklickmenue-Texte des Mods 'Anomalie-Sprungbefehl'" voice="no">
+  <page id="9000002" title="Anomalie-Sprungbefehl - Eigene Texte" descr="Eigene Rechtsklickmenü-Texte des Mods 'Anomalie-Sprungbefehl'" voice="no">
     <!-- Rechtsklick-Aktion, wenn eine in der Naehe einer Anomalie platzierte Navigationsbake angewaehlt wird -->
     <t id="10">Durch Anomalie springen</t>
     <t id="11">Fliege zur nahegelegenen Anomalie und springe hindurch.</t>
