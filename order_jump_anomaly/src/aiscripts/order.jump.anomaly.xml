@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aiscript name="order.jump.anomaly" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="aiscripts.xsd" version="1">
+  <!-- Custom order: fly to an anomaly and jump through it. Queued by src/md/order_jump_anomaly.xml,
+       re-checks its own position on every (re)start, same pattern as Egosoft's own DockAndWait. -->
+  <!-- Known limitation: cannot be used in a player repeat-order loop (engine decides loopability
+       internally, not fixable from script/schema). Works normally outside a loop. -->
+  <order id="JumpAnomaly" name="{9000002, 20}" description="{9000002, 21}" category="navigation">
+    <params>
+      <param name="anomaly" type="object" text="{9000002, 22}" comment="Anomaly to transition through">
+        <input_param name="class" value="[class.anomaly]"/>
+      </param>
+      <!-- How close counts as arrived, scaled by ship size (xs 500m up to xl 4km). -->
+      <param name="arrivaldistance" type="internal" default="if this.ship.class == class.ship_xs then 500m else if this.ship.class == class.ship_s then 1km else if this.ship.class == class.ship_m then 2km else if this.ship.class == class.ship_l then 3km else 4km" comment="How close to the anomaly counts as arrived, scaled by ship size"/>
+    </params>
+    <requires>
+      <match shiptype="shiptype.lasertower" negate="true"/>
+      <match class="class.spacesuit" negate="true"/>
+    </requires>
+    <location object="$anomaly" condition="$anomaly.exists"/>
+    <!-- No dedicated jump/anomaly order icon exists, so this reuses order_movetoobject
+         (same one used for the interact menu entry in order_jump_anomaly.xml). -->
+    <icon name="order_movetoobject"/>
+  </order>
+
+  <!-- Standard interrupt handler set (attack/scan/inspect/tide/etc.), matching Egosoft's own orders.
+       SectorChangeHandler resumes at "start" after our own jump - see the $hasjumped guard below. -->
+  <interrupts>
+    <handler ref="SectorChangeHandler"/>
+    <handler ref="TargetInvalidHandler"/>
+    <handler ref="AttackHandler"/>
+    <handler ref="MissileLockHandler"/>
+    <handler ref="ScannedHandler"/>
+    <handler ref="InspectedHandler"/>
+    <handler ref="FoundAbandonedHandler"/>
+    <handler ref="FoundLockboxHandler"/>
+    <handler ref="ResupplyHandler"/>
+    <handler ref="TideHandler"/>
+  </interrupts>
+
+  <attention min="unknown">
+    <actions>
+      <label name="start"/>
+
+      <!-- Guards against SectorChangeHandler re-triggering the "fly there" branch after our
+           own jump already moved the ship out of $anomaly's sector. -->
+      <do_if value="@$hasjumped">
+        <!-- Nothing left to do - already jumped in a previous pass through this script. Chance=0: enable manually if this needs re-diagnosing. -->
+        <debug_text text="'JumpAnomaly: already jumped, finishing.'" chance="0"/>
+      </do_if>
+      <do_elseif value="not $anomaly? or not $anomaly.exists">
+        <debug_text text="'JumpAnomaly: no valid anomaly parameter, aborting.'" filter="error"/>
+      </do_elseif>
+      <do_else>
+        <!-- Re-checked every (re)start, not just once. 5km mirrors the MD-side beacon search radius. -->
+        <do_if value="not (this.ship.sector == $anomaly.sector and this.ship.relativeposition.{$anomaly}.length le $arrivaldistance)">
+          <create_order object="this.ship" id="'MoveToObject'" immediate="true" comment="Not (or no longer) near the anomaly - fly there first, same as DockAndWait's own DockAt sub-order">
+            <param name="destination" value="$anomaly"/>
+            <param name="noattackresponse" value="true"/>
+          </create_order>
+          <wait exact="1ms"/>
+        </do_if>
+
+        <do_if value="this.ship.exists and $anomaly.exists and this.ship.sector == $anomaly.sector and this.ship.relativeposition.{$anomaly}.length le $arrivaldistance">
+          <!-- Wait scaled by pilot skill (stars): 1-3s at max skill up to 6-18s at min/no pilot. -->
+          <set_value name="$pilotskill" exact="if this.ship.pilot.exists then this.ship.pilot.skill.piloting else 0"/>
+          <set_value name="$delaymin" exact="6 - ($pilotskill / 3)"/>
+          <set_value name="$delaymax" exact="3 * $delaymin"/>
+          <wait min="($delaymin)s" max="($delaymax)s"/>
+
+          <!-- Re-checked once more: this order could have been interrupted again during the wait itself. -->
+          <do_if value="this.ship.exists and $anomaly.exists and this.ship.sector == $anomaly.sector and this.ship.relativeposition.{$anomaly}.length le $arrivaldistance">
+            <set_value name="$hasjumped" exact="true"/>
+            <perform_gate_transition object="this.ship" gate="$anomaly"/>
+          </do_if>
+        </do_if>
+      </do_else>
+    </actions>
+  </attention>
+</aiscript>

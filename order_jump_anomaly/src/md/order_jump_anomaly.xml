@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="OrderJumpAnomaly" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+
+    <!-- Search radius around a nav beacon that counts as "placed to mark an anomaly"
+         (anomalies never show on the map, so a nearby beacon is the clickable stand-in). -->
+    <cue name="OrderJumpAnomaly_Globals">
+      <actions>
+        <set_value name="OrderJumpAnomaly_Globals.$BeaconSearchRadius" exact="5km"/>
+      </actions>
+    </cue>
+
+    <!-- Adds a right-click action via SirNukes' Interact Menu API when the target is a beacon
+         near an anomaly and at least one player ship is selected. -->
+    <cue name="OrderJumpAnomaly_AddAction" instantiate="true">
+      <conditions>
+        <event_cue_signalled cue="md.Interact_Menu_API.Get_Actions"/>
+      </conditions>
+      <actions>
+        <set_value name="$Target" exact="event.param.$object"/>
+        <do_if value="$Target? and $Target.exists and $Target.isclass.{class.navbeacon} and event.param.$selectedplayerships? and event.param.$selectedplayerships.count gt 0">
+          <find_object name="$Anomaly" class="class.anomaly" space="$Target.sector" multiple="false" required="false">
+            <match_distance object="$Target" max="OrderJumpAnomaly_Globals.$BeaconSearchRadius"/>
+          </find_object>
+          <do_if value="$Anomaly? and $Anomaly.exists">
+            <signal_cue_instantly
+              cue="md.Interact_Menu_API.Add_Action"
+              param="table[
+                $id         = 'order_jump_anomaly_fly',
+                $section    = 'order',
+                $text       = {9000002, 10},
+                $mouseover  = {9000002, 11},
+                $icon       = 'order_movetoobject',
+                $mouseover_icon = 'order_movetoobject',
+                $callback   = OrderJumpAnomaly_Callback,
+                $echo       = $Anomaly,
+                ]"/>
+          </do_if>
+        </do_if>
+      </actions>
+    </cue>
+
+    <!-- Fired on selecting the action. Sends every selected player ship to the anomaly
+         found earlier, passed through via $echo. -->
+    <cue name="OrderJumpAnomaly_Callback" instantiate="true">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+        <set_value name="$Anomaly" exact="event.param.$echo"/>
+        <do_if value="$Anomaly? and $Anomaly.exists">
+          <do_for_each name="$Ship" in="event.param.$selectedplayerships">
+            <do_if value="$Ship? and $Ship.exists and $Ship.isclass.{class.ship}">
+              <signal_cue_instantly cue="OrderJumpAnomaly_SendShip" param="table[$ship=$Ship, $anomaly=$Anomaly]"/>
+            </do_if>
+          </do_for_each>
+        </do_if>
+      </actions>
+    </cue>
+
+    <!-- One instance per commanded ship. Appends the custom JumpAnomaly order (aiscripts/order.jump.anomaly.xml)
+         to the ship's queue; that order handles flying to the anomaly itself if needed. -->
+    <cue name="OrderJumpAnomaly_SendShip" instantiate="true">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+        <set_value name="$Ship" exact="event.param.$ship"/>
+        <set_value name="$Anomaly" exact="event.param.$anomaly"/>
+        <create_order object="$Ship" id="'JumpAnomaly'" comment="Appended to the order queue - flies to the anomaly if needed, then jumps">
+          <param name="anomaly" value="$Anomaly"/>
+        </create_order>
+      </actions>
+    </cue>
+
+  </cues>
+</mdscript>
